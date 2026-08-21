@@ -16,17 +16,17 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS CORREGIDOS (FORZADO DE BOTÓN VERDE Y DROPDOWNS CLAROS)
+# 3. ESTILOS CSS CORREGIDOS (BOTÓN 100% ANCHO, DROPDOWNS BLANCOS Y FONDO DE ADHESIVO)
 st.markdown(
     """
     <style>
     /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO AUTOMOTRIZ INDUSTRIAL (Línea de ensamblaje robotizada) */
+    /* FONDO DE RESINA / ADHESIVO LÍQUIDO INDUSTRIAL CON CAPA CLARA */
     .stApp {
-        background-image: linear-gradient(rgba(248, 250, 252, 0.92), rgba(248, 250, 252, 0.92)), 
-                          url('https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&q=80&w=1200') !important;
+        background-image: linear-gradient(rgba(248, 250, 252, 0.88), rgba(248, 250, 252, 0.88)), 
+                          url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1200') !important;
         background-size: cover !important;
         background-position: center !important;
         background-attachment: fixed !important;
@@ -38,7 +38,7 @@ st.markdown(
         padding-bottom: 2rem !important;
     }
     
-    /* FORZAR COLORES OSCUROS EN TEXTOS */
+    /* FORZAR TEXTOS OSCUROS LEGIBLES */
     label, p, span, h1, h2, h3, .stMarkdown {
         color: #0F172A !important;
         font-family: 'Inter', system-ui, sans-serif !important;
@@ -51,7 +51,12 @@ st.markdown(
         margin-bottom: 6px !important;
     }
     
-    /* CORRECCIÓN DE DROPDOWNS (SELECTBOX EN BLANCO CLARO) */
+    /* FORZAR DROPDOWNS (SELECTBOX) EN FONDO BLANCO Y TEXTO OSCURO */
+    div[data-baseweb="select"] {
+        background-color: #FFFFFF !important;
+        border-radius: 10px !important;
+    }
+
     div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         border: 1.5px solid #CBD5E1 !important;
@@ -59,23 +64,27 @@ st.markdown(
         min-height: 48px !important;
     }
     
-    div[data-baseweb="select"] span, div[data-baseweb="select"] div {
+    div[data-baseweb="select"] * {
         color: #0F172A !important;
-        background-color: transparent !important;
+        background-color: #FFFFFF !important;
         font-weight: 600 !important;
     }
 
-    /* CORRECCIÓN EXACTA PARA EL BOTÓN DE FORMULARIO (VERDE, ANCHO COMPLETO, LETRA BLANCA) */
+    /* FORZAR EL CONTENEDOR DEL BOTÓN A OCUPAR EL 100% DEL ANCHO */
     div[data-testid="stFormSubmitButton"] {
         width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
     }
     
+    /* BOTÓN VERDE A 100% DE ANCHO Y 48PX DE ALTO (IGUAL QUE EL DROPDOWN) */
     div[data-testid="stFormSubmitButton"] > button {
         width: 100% !important;
+        min-height: 48px !important;
         background-color: #16A34A !important; /* Verde Esmeralda */
-        color: #FFFFFF !important; /* Texto Blanco Brillante */
+        color: #FFFFFF !important; /* Texto Blanco Intenso */
         border: none !important;
-        padding: 14px 24px !important;
+        padding: 12px 24px !important;
         font-size: 16px !important;
         font-weight: 800 !important;
         border-radius: 10px !important;
@@ -83,6 +92,7 @@ st.markdown(
         transition: all 0.2s ease !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        margin-top: 10px !important;
     }
     
     div[data-testid="stFormSubmitButton"] > button:hover {
@@ -91,7 +101,8 @@ st.markdown(
     }
     
     div[data-testid="stFormSubmitButton"] > button p {
-        color: #FFFFFF !important; /* Forzar texto blanco en el párrafo del botón */
+        color: #FFFFFF !important;
+        font-weight: 800 !important;
     }
     
     /* TARJETA BLANCA DEL FORMULARIO */
