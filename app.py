@@ -16,79 +16,69 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS CORREGIDOS (BOTÓN 100% ANCHO, DROPDOWNS BLANCOS Y FONDO DE ADHESIVO)
+# 3. ESTILOS CSS (TÍTULOS CENTRADOS Y FONDO GRADIENTE PASTEL)
 st.markdown(
     """
     <style>
     /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO DE RESINA / ADHESIVO LÍQUIDO INDUSTRIAL CON CAPA CLARA */
+    /* FONDO DE GRADIENTE PASTEL MODERNO (IGUAL A LA CAPTURA) */
     .stApp {
-        background-image: linear-gradient(rgba(248, 250, 252, 0.88), rgba(248, 250, 252, 0.88)), 
-                          url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1200') !important;
-        background-size: cover !important;
-        background-position: center !important;
+        background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(243, 232, 255, 0.7) 0px, transparent 50%),
+                    radial-gradient(at 0% 100%, rgba(224, 242, 254, 0.7) 0px, transparent 50%),
+                    #F8FAFC !important;
         background-attachment: fixed !important;
     }
     
     .block-container {
         max-width: 500px !important;
-        padding-top: 1.5rem !important;
+        padding-top: 2rem !important;
         padding-bottom: 2rem !important;
     }
     
-    /* FORZAR TEXTOS OSCUROS LEGIBLES */
-    label, p, span, h1, h2, h3, .stMarkdown {
-        color: #0F172A !important;
-        font-family: 'Inter', system-ui, sans-serif !important;
+    /* CENTRAR LOS TÍTULOS / ETIQUETAS DE LOS DROPDOWNS */
+    [data-testid="stWidgetLabel"] {
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
     }
     
     [data-testid="stWidgetLabel"] p {
+        text-align: center !important;
         font-weight: 700 !important;
         font-size: 14px !important;
         color: #0F172A !important;
-        margin-bottom: 6px !important;
+        margin-bottom: 8px !important;
+        width: 100% !important;
     }
     
-    /* FORZAR DROPDOWNS (SELECTBOX) EN FONDO BLANCO Y TEXTO OSCURO */
-    div[data-baseweb="select"] {
-        background-color: #FFFFFF !important;
-        border-radius: 10px !important;
+    /* FORZAR COLORES OSCUROS EN OTROS TEXTOS */
+    label, p, span, h1, h2, h3, .stMarkdown {
+        font-family: 'Inter', system-ui, sans-serif !important;
     }
 
-    div[data-baseweb="select"] > div {
-        background-color: #FFFFFF !important;
-        border: 1.5px solid #CBD5E1 !important;
-        border-radius: 10px !important;
-        min-height: 48px !important;
-    }
-    
-    div[data-baseweb="select"] * {
-        color: #0F172A !important;
-        background-color: #FFFFFF !important;
-        font-weight: 600 !important;
-    }
-
-    /* FORZAR EL CONTENEDOR DEL BOTÓN A OCUPAR EL 100% DEL ANCHO */
+    /* CONTENEDOR DEL BOTÓN A ANCHO COMPLETO */
     div[data-testid="stFormSubmitButton"] {
         width: 100% !important;
         display: flex !important;
         justify-content: center !important;
     }
     
-    /* BOTÓN VERDE A 100% DE ANCHO Y 48PX DE ALTO (IGUAL QUE EL DROPDOWN) */
+    /* BOTÓN VERDE ESMERALDA IGUAL A LA CAPTURA */
     div[data-testid="stFormSubmitButton"] > button {
         width: 100% !important;
         min-height: 48px !important;
-        background-color: #16A34A !important; /* Verde Esmeralda */
-        color: #FFFFFF !important; /* Texto Blanco Intenso */
+        background-color: #10B981 !important; /* Verde brillante */
+        color: #FFFFFF !important;
         border: none !important;
         padding: 12px 24px !important;
         font-size: 16px !important;
         font-weight: 800 !important;
         border-radius: 10px !important;
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
         transition: all 0.2s ease !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -96,7 +86,7 @@ st.markdown(
     }
     
     div[data-testid="stFormSubmitButton"] > button:hover {
-        background-color: #15803D !important;
+        background-color: #059669 !important;
         color: #FFFFFF !important;
     }
     
@@ -105,12 +95,12 @@ st.markdown(
         font-weight: 800 !important;
     }
     
-    /* TARJETA BLANCA DEL FORMULARIO */
+    /* TARJETA BLANCA CENTRADA CON BORDES REDONDEADOS */
     [data-testid="stForm"] {
         background-color: #FFFFFF !important;
-        border-radius: 16px !important;
+        border-radius: 20px !important;
         border: 1px solid #E2E8F0 !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
         padding: 24px !important;
     }
     
@@ -120,8 +110,7 @@ st.markdown(
         border-radius: 12px;
         padding: 12px 16px;
         margin-bottom: 8px;
-        border-left: 4px solid #0284C7;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
         border: 1px solid #E2E8F0;
         border-left: 4px solid #0284C7;
     }
