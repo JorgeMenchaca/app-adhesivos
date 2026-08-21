@@ -12,70 +12,80 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# 2. ESTADO DE NAVEGACIÓN (Control de pantallas)
+# 2. ESTADO DE NAVEGACIÓN
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS PERSONALIZADOS Y FORZADO DE TEMA CLARO
+# 3. ESTILOS CSS PERSONALIZADOS (VERDE + FONDO INDUSTRIAL)
 st.markdown(
     """
     <style>
     /* Ocultar elementos de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
+    /* FONDO TEMÁTICO INDUSTRIAL / ADHESIVOS CON OVERLAY SUAVE */
     .stApp {
-        background-color: #F8FAFC;
+        background-image: linear-gradient(rgba(248, 250, 252, 0.92), rgba(248, 250, 252, 0.92)), 
+                          url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1200');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
     }
     
     .block-container {
-        max-width: 520px !important;
+        max-width: 500px !important;
         padding-top: 1.5rem !important;
         padding-bottom: 2rem !important;
     }
     
-    /* FORZAR COLOR OSCURO EN TODOS LOS TÍTULOS Y ETIQUETAS */
+    /* FORZAR TEXTOS OSCUROS LEGIBLES */
     label, p, span, h1, h2, h3, .stMarkdown {
         color: #0F172A !important;
         font-family: 'Inter', system-ui, sans-serif !important;
     }
     
-    /* Estilo de las etiquetas de los inputs */
     [data-testid="stWidgetLabel"] p {
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         font-size: 14px !important;
-        color: #1E293B !important;
-        margin-bottom: 4px !important;
+        color: #0F172A !important;
+        margin-bottom: 6px !important;
     }
     
-    /* ESTILO MODERNO PARA LOS DROPDOWNS (SELECTBOX) */
+    /* DROPDOWNS (SELECTBOX) ELEGANTES */
     div[data-baseweb="select"] > div {
-        background-color: #F8FAFC !important;
-        border: 1px solid #CBD5E1 !important;
+        background-color: #FFFFFF !important;
+        border: 1.5px solid #CBD5E1 !important;
         border-radius: 10px !important;
         color: #0F172A !important;
+        min-height: 48px !important;
     }
     
     div[data-baseweb="select"] * {
         color: #0F172A !important;
         background-color: transparent !important;
+        font-weight: 600 !important;
     }
     
-    /* Contenedor tipo Tarjeta */
+    /* CONTENEDOR TARJETA */
     [data-testid="stForm"] {
         background-color: #FFFFFF !important;
         border-radius: 16px !important;
         border: 1px solid #E2E8F0 !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
         padding: 24px !important;
     }
     
-    /* Tarjetas del QR */
+    /* TARJETAS DEL QR */
     .info-card {
-        background-color: #F1F5F9;
+        background-color: #FFFFFF;
         border-radius: 12px;
         padding: 12px 16px;
         margin-bottom: 8px;
         border-left: 4px solid #0284C7;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+        border-top: 1px solid #F1F5F9;
+        border-right: 1px solid #F1F5F9;
+        border-bottom: 1px solid #F1F5F9;
     }
     .info-label {
         font-size: 11px;
@@ -90,24 +100,27 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* BOTÓN AZUL MODERNO A ANCHO COMPLETO */
+    /* BOTÓN VERDE ESMERALDA A ANCHO COMPLETO */
     div.stButton > button {
         width: 100% !important;
-        background-color: #0284C7 !important;
-        color: white !important;
+        background-color: #16A34A !important; /* Verde Esmeralda */
+        color: #FFFFFF !important; /* Texto Blanco */
         border: none !important;
-        padding: 12px 24px !important;
+        padding: 14px 24px !important;
         font-size: 16px !important;
-        font-weight: 700 !important;
+        font-weight: 800 !important;
         border-radius: 10px !important;
-        box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2) !important;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3) !important;
         transition: all 0.2s ease !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     div.stButton > button:hover {
-        background-color: #0369A1 !important;
+        background-color: #15803D !important; /* Verde más oscuro al pasar mouse */
+        transform: translateY(-1px);
     }
     
-    /* Tarjeta de Historial */
+    /* TARJETA DE HISTORIAL */
     .historial-item {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -171,7 +184,7 @@ if st.session_state["pantalla"] == "formulario":
 
     # ENCABEZADO
     st.markdown(
-        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px;'>Nuevo Folio</h2>",
+        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Nuevo Folio</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -207,7 +220,7 @@ if st.session_state["pantalla"] == "formulario":
         "<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True
     )
 
-    # FORMULARIO CON ESTILO CLARO
+    # FORMULARIO
     with st.form("form_registro", clear_on_submit=True):
 
         adhesivo_sel = st.selectbox(
@@ -266,12 +279,12 @@ if st.session_state["pantalla"] == "formulario":
 
 
 # ==============================================================================
-# PANTALLA 2: HISTORIAL (Últimos 4 días, de más nuevo a más viejo)
+# PANTALLA 2: HISTORIAL
 # ==============================================================================
 elif st.session_state["pantalla"] == "historial":
 
     st.markdown(
-        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px;'>Folios Recientes</h2>",
+        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Folios Recientes</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -279,20 +292,14 @@ elif st.session_state["pantalla"] == "historial":
         unsafe_allow_html=True,
     )
 
-    # Cargar folios más recientes
     df_folios = conn.read(worksheet="FOLIOS", ttl=0)
 
     if not df_folios.empty and "FechaCreacion" in df_folios.columns:
-        # Convertir FechaCreacion a objeto DateTime
         df_folios["Fecha_dt"] = pd.to_datetime(
             df_folios["FechaCreacion"], errors="coerce"
         )
-
-        # Filtrar: Hoy menos 4 días
         hace_4_dias = pd.Timestamp.now() - pd.Timedelta(days=4)
         df_filtrado = df_folios[df_folios["Fecha_dt"] >= hace_4_dias].copy()
-
-        # Ordenar de más nuevo a más viejo
         df_filtrado = df_filtrado.sort_values(by="Fecha_dt", ascending=False)
 
         if not df_filtrado.empty:
