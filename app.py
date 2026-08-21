@@ -7,12 +7,12 @@ from streamlit_gsheets import GSheetsConnection
 # CLAVE DE ACCESO ADMINISTRADOR
 CLAVE_ADMIN = "1234"
 
-# 1. CONFIGURACIÓN DE PÁGINA (Auto: cerrado en celular, abierto en PC)
+# 1. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(
     page_title="Dashboard | Gestión de Folios",
     page_icon="📦",
     layout="wide",
-    initial_sidebar_state="auto",
+    initial_sidebar_state="expanded",
 )
 
 # HELPER: HORA ZONA CENTRAL MÉXICO (UTC-6)
@@ -42,57 +42,38 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS RESPONSIVOS (MÓVIL MUESTRA EL BOTÓN DE MENÚ)
+# 3. ESTILOS CSS (OCULTAR ICONOS DE GITHUB, FOOTER Y STREAMLIT)
 st.markdown(
     """
     <style>
-    #MainMenu, footer {display: none !important;}
-    
     /* ------------------------------------------------------------- */
-    /* COMPUTADORA (WIDTH >= 768PX): MENÚ FIJO A LA IZQUIERDA */
+    /* OCULTAR ICONOS DE GITHUB, STREAMLIT, TOOLBAR Y FOOTER */
     /* ------------------------------------------------------------- */
+    #MainMenu, 
+    footer, 
+    header, 
+    [data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stViewerBadge"],
+    div[class*="stViewerBadge"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0px !important;
+    }
+
+    [data-testid="stSidebarCollapseButton"], 
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+
     @media (min-width: 768px) {
-        header,
-        [data-testid="stSidebarCollapseButton"], 
-        [data-testid="collapsedControl"] {
-            display: none !important;
-        }
         [data-testid="stSidebar"] {
             display: block !important;
             visibility: visible !important;
             min-width: 260px !important;
             max-width: 260px !important;
             transform: none !important;
-        }
-    }
-
-    /* ------------------------------------------------------------- */
-    /* CELULAR (WIDTH <= 767PX): BOTÓN FLOTANTE VISIBLE EN ESQUINA */
-    /* ------------------------------------------------------------- */
-    @media (max-width: 767px) {
-        header {
-            display: block !important;
-            background: transparent !important;
-        }
-        
-        [data-testid="collapsedControl"] {
-            display: flex !important;
-            visibility: visible !important;
-            position: fixed !important;
-            top: 12px !important;
-            left: 12px !important;
-            z-index: 999999 !important;
-            background-color: #0F172A !important;
-            border-radius: 10px !important;
-            padding: 4px !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
-        }
-        
-        [data-testid="collapsedControl"] button,
-        [data-testid="collapsedControl"] span,
-        [data-testid="collapsedControl"] svg {
-            color: #FFFFFF !important;
-            fill: #FFFFFF !important;
         }
     }
     
@@ -188,10 +169,10 @@ st.markdown(
         font-size: 16px !important;
     }
 
-    /* BOTONES GENERALES DE ATENDER */
+    /* BOTONES GENERALES */
     div.stButton > button {
         width: 100% !important;
-        min-height: 38px !important;
+        min-height: 40px !important;
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
         border: none !important;
@@ -279,7 +260,7 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
     }
 
-    /* BOTÓN ATENDER DENTRO DE LA TARJETA EN PANEL DE SURTIDO */
+    /* BOTÓN ATENDER DENTRO DE LA TARJETA */
     .btn-atender-inside {
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
@@ -325,7 +306,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 
 # ==============================================================================
-# PANEL IZQUIERDO DE NAVEGACIÓN (SIDEBAR DASHBOARD)
+# PANEL IZQUIERDO DE NAVEGACIÓN (SIDEBAR DASHBOARD FIJO)
 # ==============================================================================
 with st.sidebar:
     st.markdown(
@@ -590,7 +571,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (SIN ICONOS DE GITHUB / LIMPIO)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
