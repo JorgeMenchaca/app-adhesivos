@@ -16,20 +16,19 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS (TÍTULOS CENTRADOS Y FONDO GRADIENTE PASTEL)
+# 3. ESTILOS CSS (TÍTULOS CENTRADOS Y FONDO DE ALMACÉN/SURTIDO)
 st.markdown(
     """
     <style>
     /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO DE GRADIENTE PASTEL MODERNO (IGUAL A LA CAPTURA) */
+    /* FONDO DE ALMACÉN LOGÍSTICO Y SURTIDO DE MATERIALES CON CAPA CLARA */
     .stApp {
-        background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
-                    radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
-                    radial-gradient(at 100% 100%, rgba(243, 232, 255, 0.7) 0px, transparent 50%),
-                    radial-gradient(at 0% 100%, rgba(224, 242, 254, 0.7) 0px, transparent 50%),
-                    #F8FAFC !important;
+        background-image: linear-gradient(rgba(248, 250, 252, 0.90), rgba(248, 250, 252, 0.90)), 
+                          url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1200') !important;
+        background-size: cover !important;
+        background-position: center !important;
         background-attachment: fixed !important;
     }
     
@@ -39,7 +38,7 @@ st.markdown(
         padding-bottom: 2rem !important;
     }
     
-    /* CENTRAR LOS TÍTULOS / ETIQUETAS DE LOS DROPDOWNS */
+    /* CENTRAR LOS TÍTULOS DE LOS DROPDOWNS */
     [data-testid="stWidgetLabel"] {
         display: flex !important;
         justify-content: center !important;
@@ -55,7 +54,7 @@ st.markdown(
         width: 100% !important;
     }
     
-    /* FORZAR COLORES OSCUROS EN OTROS TEXTOS */
+    /* FORZAR COLORES OSCUROS EN TEXTOS */
     label, p, span, h1, h2, h3, .stMarkdown {
         font-family: 'Inter', system-ui, sans-serif !important;
     }
@@ -67,11 +66,11 @@ st.markdown(
         justify-content: center !important;
     }
     
-    /* BOTÓN VERDE ESMERALDA IGUAL A LA CAPTURA */
+    /* BOTÓN VERDE ESMERALDA (100% ANCHO Y 48PX DE ALTO) */
     div[data-testid="stFormSubmitButton"] > button {
         width: 100% !important;
         min-height: 48px !important;
-        background-color: #10B981 !important; /* Verde brillante */
+        background-color: #10B981 !important;
         color: #FFFFFF !important;
         border: none !important;
         padding: 12px 24px !important;
@@ -172,16 +171,27 @@ if st.session_state["pantalla"] == "formulario":
     cabina_qr = query_params.get("cabina", "1")
     adhesivo_qr = query_params.get("adhesivo", None)
 
-    adhesivos_disponibles = df_adhesivos[
-        df_adhesivos["DescripcionLinea"] == linea_qr
-    ]["Adhesivo"].dropna().unique().tolist()
-    if not adhesivos_disponibles:
-        adhesivos_disponibles = ["ADHESIVO 09 (GENERAL)"]
+    # -------------------------------------------------------------
+    # REGLA ESPECIAL PARA "PRIMER":
+    # -------------------------------------------------------------
+    if adhesivo_qr and adhesivo_qr.strip().upper() == "PRIMER":
+        # Si el QR manda PRIMER, SOLO se muestra esa opción en el dropdown
+        adhesivos_disponibles = ["PRIMER"]
+        index_adhesivo = 0
+    else:
+        # Carga normal filtrada por Línea desde la pestaña ADHESIVOS
+        adhesivos_disponibles = df_adhesivos[
+            df_adhesivos["DescripcionLinea"] == linea_qr
+        ]["Adhesivo"].dropna().unique().tolist()
+        
+        if not adhesivos_disponibles:
+            adhesivos_disponibles = ["ADHESIVO 09 (GENERAL)"]
 
-    index_adhesivo = 0
-    if adhesivo_qr and adhesivo_qr in adhesivos_disponibles:
-        index_adhesivo = adhesivos_disponibles.index(adhesivo_qr)
+        index_adhesivo = 0
+        if adhesivo_qr and adhesivo_qr in adhesivos_disponibles:
+            index_adhesivo = adhesivos_disponibles.index(adhesivo_qr)
 
+    # Buscar Prioridad en la pestaña PRIORIDAD
     match_prioridad = df_prioridad[df_prioridad["LINEA"] == linea_qr]
     prioridad_val = (
         match_prioridad["PRIORIDAD"].values[0]
