@@ -236,7 +236,7 @@ st.markdown(
         background-color: #0F172A !important;
     }
 
-    /* TARJETA BLANCA SÓLIDA DE FOLIO (HISTORIAL Y SURTIDO) */
+    /* TARJETA DE FOLIO COMPACTA CON BOTÓN INTEGRADO */
     .historial-item-compact {
         background-color: #FFFFFF !important;
         border: 1px solid #E2E8F0 !important;
@@ -246,7 +246,6 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
     }
 
-    /* BOTÓN ATENDER DENTRO DE LA TARJETA EN PANEL DE SURTIDO */
     .btn-atender-inside {
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
@@ -557,7 +556,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TARJETAS SÓLIDAS EN UNA SOLA LÍNEA)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TARJETAS HTML 100% LIMPIAS)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -597,8 +596,7 @@ elif st.session_state["pantalla"] == "admin_panel":
                     prio = str(row.get('Prioridad', ''))
                     fec = str(row.get('FechaCreacion', ''))
 
-                    # CONSTRUCCIÓN HTML EN UNA SOLA LÍNEA (EVITA TRANSPARENCIAS Y CAJONES NEGROS)
-                    items_surtido_html += f'<div class="historial-item-compact"><div style="display: flex; justify-content: space-between; align-items: center;"><div><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?p=admin_panel&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div></div>'
+                    items_surtido_html += f'<div class="historial-item-compact"><div style="display: flex; justify-content: space-between; align-items: center;"><div><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div></div>'
                 
                 st.markdown(f'<div class="historial-box">{items_surtido_html}</div>', unsafe_allow_html=True)
             else:
@@ -610,12 +608,15 @@ elif st.session_state["pantalla"] == "admin_panel":
 
 
 # ==============================================================================
-# PANTALLA 5: DETALLE Y RESOLUCIÓN DE FOLIO
+# PANTALLA 5: DETALLE Y RESOLUCIÓN DE FOLIO (CORREGIDO ERROR DTYPE EN PANDAS)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_detalle":
 
     folio_id = st.session_state.get("folio_atender", None)
     df_folios = conn.read(worksheet="FOLIOS", ttl=0)
+
+    # FIX CRÍTICO: Convertir todas las columnas a tipo 'object' para evitar el error TypeError en Pandas
+    df_folios = df_folios.astype(object)
 
     folio_data = df_folios[df_folios["ID_Folio"].astype(str) == str(folio_id)]
 
@@ -661,11 +662,12 @@ elif st.session_state["pantalla"] == "admin_detalle":
 
                     idx = df_folios[df_folios["ID_Folio"].astype(str) == str(folio_id)].index[0]
 
+                    # ASIGNACIÓN SEGURA DE VALORES
                     df_folios.at[idx, "Estatus"] = "COMPLETADO"
-                    df_folios.at[idx, "FolioSurtido"] = folio_surtido_val
-                    df_folios.at[idx, "DescripcionResolucion"] = descripcion_res_val
-                    df_folios.at[idx, "FechaCerrado"] = fecha_cerrado_str
-                    df_folios.at[idx, "NivelCerrado"] = nivel_cerrado_val
+                    df_folios.at[idx, "FolioSurtido"] = str(folio_surtido_val)
+                    df_folios.at[idx, "DescripcionResolucion"] = str(descripcion_res_val)
+                    df_folios.at[idx, "FechaCerrado"] = str(fecha_cerrado_str)
+                    df_folios.at[idx, "NivelCerrado"] = str(nivel_cerrado_val)
                     df_folios.at[idx, "UsuarioCerrado"] = "Usuario Adhesivo"
                     df_folios.at[idx, "minutosTranscurridos"] = minutos_transcurridos
 
