@@ -4,12 +4,12 @@ import pandas as pd
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 
-# CLAVE DE ACCESO ADMINISTRADOR (Puedes cambiarla aquí)
+# CLAVE DE ACCESO ADMINISTRADOR
 CLAVE_ADMIN = "1234"
 
 # 1. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(
-    page_title="Gestión de Folios",
+    page_title="Sistema de Folios & Surtido",
     page_icon="📦",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -19,18 +19,21 @@ st.set_page_config(
 def hora_mexico():
     return datetime.utcnow() - timedelta(hours=6)
 
-# 2. ESTADO DE NAVEGACIÓN
+# 2. ESTADO DE NAVEGACIÓN Y SESIÓN
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 if "folio_atender" not in st.session_state:
     st.session_state["folio_atender"] = None
+if "admin_autenticado" not in st.session_state:
+    st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS
+# 3. ESTILOS CSS RESPONSIVOS (ADAPTATIVO PC / MÓVIL)
 st.markdown(
     """
     <style>
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
+    /* FONDO DE GRADIENTE PASTEL */
     .stApp {
         background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
                     radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
@@ -40,10 +43,23 @@ st.markdown(
         background-attachment: fixed !important;
     }
     
+    /* ANCHO POR DEFECTO EN MÓVIL */
     .block-container {
         max-width: 500px !important;
-        padding-top: 1.5rem !important;
+        padding-top: 1rem !important;
         padding-bottom: 2rem !important;
+    }
+    
+    /* ADAPTACIÓN PARA COMPUTADORAS / PANTALLAS GRANDES (>768px) */
+    @media (min-width: 768px) {
+        .block-container {
+            max-width: 950px !important;
+        }
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
     }
 
     div[class*="st-key-FormSubmitter-"],
@@ -90,7 +106,7 @@ st.markdown(
     
     div.stButton > button {
         width: 100% !important;
-        min-height: 44px !important;
+        min-height: 42px !important;
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
         border: none !important;
@@ -148,7 +164,7 @@ st.markdown(
     }
 
     .historial-box {
-        max-height: 380px;
+        max-height: 420px;
         overflow-y: auto;
         padding-right: 4px;
         margin-bottom: 16px;
@@ -193,6 +209,29 @@ st.markdown(
 
 # 4. CONEXIÓN A GOOGLE SHEETS
 conn = st.connection("gsheets", type=GSheetsConnection)
+
+
+# ==============================================================================
+# NAV BAR GLOBAL (MENÚ DE NAVEGACIÓN SUPERIOR)
+# ==============================================================================
+col_n1, col_n2, col_n3 = st.columns(3)
+with col_n1:
+    if st.button("📋 Nuevo", use_container_width=True):
+        st.session_state["pantalla"] = "formulario"
+        st.rerun()
+with col_n2:
+    if st.button("📜 Historial", use_container_width=True):
+        st.session_state["pantalla"] = "historial"
+        st.rerun()
+with col_n3:
+    if st.button("📦 Surtido", use_container_width=True):
+        if st.session_state["admin_autenticado"]:
+            st.session_state["pantalla"] = "admin_panel"
+        else:
+            st.session_state["pantalla"] = "admin_login"
+        st.rerun()
+
+st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
 
 
 # ==============================================================================
@@ -289,7 +328,6 @@ if st.session_state["pantalla"] == "formulario":
 
         if btn_guardar:
             nuevo_id = str(uuid.uuid4())[:8]
-            # HORA AJUSTADA A MÉXICO (UTC-6)
             fecha_actual = hora_mexico().strftime("%m/%d/%Y %H:%M:%S")
 
             nuevo_folio = pd.DataFrame(
@@ -338,7 +376,7 @@ elif st.session_state["pantalla"] == "historial":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 16px;'>Registros de los últimos 4 días</div>",
+        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 12px;'>Mostrando los 50 más recientes</div>",
         unsafe_allow_html=True,
     )
 
@@ -384,19 +422,9 @@ elif st.session_state["pantalla"] == "historial":
     else:
         st.info("No hay registros en la base de datos.")
 
-    c1, c2 = st.columns([3, 1])
-    with c1:
-        if st.button("➕ CREAR OTRO FOLIO"):
-            st.session_state["pantalla"] = "formulario"
-            st.rerun()
-    with c2:
-        if st.button("🔒 Admin"):
-            st.session_state["pantalla"] = "admin_login"
-            st.rerun()
-
 
 # ==============================================================================
-# PANTALLA 3: LOGIN DE ADMINISTRADOR / ALMACÉN
+# PANTALLA 3: LOGIN DE ADMINISTRADOR
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_login":
 
@@ -415,27 +443,27 @@ elif st.session_state["pantalla"] == "admin_login":
 
         if btn_login:
             if pass_input == CLAVE_ADMIN:
+                st.session_state["admin_autenticado"] = True
                 st.session_state["pantalla"] = "admin_panel"
                 st.rerun()
             else:
-                st.error("❌ Clave incorrecta. Inténtalo de nuevo.")
-
-    if st.button("⬅️ Volver al Formulario"):
-        st.session_state["pantalla"] = "formulario"
-        st.rerun()
+                st.error("❌ Clave incorrecta.")
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE ALMACÉN (PENDIENTES ÚLTIMOS 30 DÍAS)
+# PANTALLA 4: PANEL DE SURTIDO (AUTO-REFRESCO 60s + ADAPTATIVO PC/MÓVIL)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
+    # TEMPORIZADOR DE AUTO-REFRESCO CADA 60 SEGUNDOS
+    st.markdown('<meta http-equiv="refresh" content="60">', unsafe_allow_html=True)
+
     st.markdown(
-        "<h2 style='text-align: center; font-weight: 800; color: #0F172A;'>Panel de Surtido</h2>",
+        "<h2 style='text-align: center; font-weight: 800; color: #0F172A;'>📦 Panel de Surtido en Vivo</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 14px; margin-bottom: 16px;'>Folios pendientes por surtir (Últimos 30 días)</div>",
+        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Auto-sincronizado en vivo (Refresco cada 60s) • Folios pendientes (30 días)</div>",
         unsafe_allow_html=True,
     )
 
@@ -445,7 +473,6 @@ elif st.session_state["pantalla"] == "admin_panel":
         df_folios["Fecha_dt"] = pd.to_datetime(df_folios["FechaCreacion"], errors="coerce")
         hace_30_dias = pd.Timestamp.now() - pd.Timedelta(days=30)
         
-        # FILTRO: Creados en los últimos 30 días Y Estatus != COMPLETADO
         df_pendientes = df_folios[
             (df_folios["Fecha_dt"] >= hace_30_dias) & 
             (df_folios["Estatus"].astype(str).str.upper() != "COMPLETADO")
@@ -454,6 +481,7 @@ elif st.session_state["pantalla"] == "admin_panel":
         df_pendientes = df_pendientes.sort_values(by="Fecha_dt", ascending=False)
 
         if not df_pendientes.empty:
+            # Renderizado adaptativo
             for _, row in df_pendientes.iterrows():
                 f_id = str(row.get('ID_Folio', ''))
                 
@@ -481,24 +509,19 @@ elif st.session_state["pantalla"] == "admin_panel":
                         st.rerun()
                     st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
         else:
-            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
+            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir.")
     else:
         st.info("No hay registros en la base de datos.")
 
-    if st.button("🚪 Cerrar Sesión Admin"):
-        st.session_state["pantalla"] = "formulario"
-        st.rerun()
-
 
 # ==============================================================================
-# PANTALLA 5: DETALLE Y RESOLUCIÓN DE FOLIO (ATENDER SURTIDO)
+# PANTALLA 5: DETALLE Y RESOLUCIÓN DE FOLIO
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_detalle":
 
     folio_id = st.session_state.get("folio_atender", None)
     df_folios = conn.read(worksheet="FOLIOS", ttl=0)
 
-    # Buscar la fila del folio seleccionado
     folio_data = df_folios[df_folios["ID_Folio"].astype(str) == str(folio_id)]
 
     if not folio_data.empty:
@@ -509,13 +532,12 @@ elif st.session_state["pantalla"] == "admin_detalle":
             unsafe_allow_html=True,
         )
 
-        # Resumen de datos del folio
         st.markdown(
             f"""
             <div class="info-card">
                 <div style="font-size: 13px; color: #334155;"><b>Línea:</b> {row.get('Linea')} | <b>Cabina:</b> {row.get('Cabina')}</div>
                 <div style="font-size: 13px; color: #334155;"><b>Adhesivo:</b> {row.get('Adhesivo')} ({row.get('Botes')} Bote)</div>
-                <div style="font-size: 13px; color: #334155;"><b>Prioridad:</b> {row.get('Prioridad')} | <b>Fecha Creación:</b> {row.get('FechaCreacion')}</div>
+                <div style="font-size: 13px; color: #334155;"><b>Prioridad:</b> {row.get('Prioridad')} | <b>Creado:</b> {row.get('FechaCreacion')}</div>
             </div>
         """,
             unsafe_allow_html=True,
@@ -531,11 +553,9 @@ elif st.session_state["pantalla"] == "admin_detalle":
                 if not folio_surtido_val or not descripcion_res_val:
                     st.warning("⚠️ Por favor completa ambos campos obligatorios.")
                 else:
-                    # CÁLCULOS AUTOMÁTICOS AL CERRAR
                     hora_cierre_dt = hora_mexico()
                     fecha_cerrado_str = hora_cierre_dt.strftime("%m/%d/%Y %H:%M:%S")
 
-                    # Calcular diferencia en minutos
                     fecha_creacion_dt = pd.to_datetime(row.get("FechaCreacion"), errors="coerce")
                     if pd.notnull(fecha_creacion_dt):
                         minutos_transcurridos = round((hora_cierre_dt - fecha_creacion_dt).total_seconds() / 60.0, 2)
@@ -544,7 +564,6 @@ elif st.session_state["pantalla"] == "admin_detalle":
 
                     nivel_cerrado_val = row.get("Escalacion", "PRIMERA")
 
-                    # ACTUALIZAR REGISTRO EN EL DATAFRAME
                     idx = df_folios[df_folios["ID_Folio"].astype(str) == str(folio_id)].index[0]
 
                     df_folios.at[idx, "Estatus"] = "COMPLETADO"
@@ -555,7 +574,6 @@ elif st.session_state["pantalla"] == "admin_detalle":
                     df_folios.at[idx, "UsuarioCerrado"] = "Usuario Adhesivo"
                     df_folios.at[idx, "minutosTranscurridos"] = minutos_transcurridos
 
-                    # GUARDAR DE VUELTA EN GOOGLE SHEETS
                     conn.update(worksheet="FOLIOS", data=df_folios)
 
                     st.toast(f"¡Folio #{folio_id} cerrado con éxito!", icon="✅")
