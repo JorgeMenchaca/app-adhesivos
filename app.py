@@ -6,8 +6,8 @@ from streamlit_gsheets import GSheetsConnection
 
 # 1. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(
-    page_title="Gestión de Folios",
-    page_icon="📦",
+    page_title="Sistema de Folios & Tickets",
+    page_icon="🎫",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -16,17 +16,17 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS (TÍTULOS CENTRADOS Y FONDO DE ALMACÉN/SURTIDO)
+# 3. ESTILOS CSS (TICKETING SYSTEM LOOK & FEEL)
 st.markdown(
     """
     <style>
     /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO DE ALMACÉN LOGÍSTICO Y SURTIDO DE MATERIALES CON CAPA CLARA */
+    /* FONDO DE SISTEMA DE TICKETS / FLUJO DE DATOS Y RED DIGITAL */
     .stApp {
-        background-image: linear-gradient(rgba(248, 250, 252, 0.90), rgba(248, 250, 252, 0.90)), 
-                          url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1200') !important;
+        background-image: linear-gradient(rgba(248, 250, 252, 0.91), rgba(248, 250, 252, 0.91)), 
+                          url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200') !important;
         background-size: cover !important;
         background-position: center !important;
         background-attachment: fixed !important;
@@ -66,7 +66,7 @@ st.markdown(
         justify-content: center !important;
     }
     
-    /* BOTÓN VERDE ESMERALDA (100% ANCHO Y 48PX DE ALTO) */
+    /* BOTÓN VERDE ESMERALDA TIPO TICKET SYSTEM */
     div[data-testid="stFormSubmitButton"] > button {
         width: 100% !important;
         min-height: 48px !important;
@@ -126,7 +126,7 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* TARJETA DE HISTORIAL */
+    /* TARJETA DE HISTORIAL DE TICKETS */
     .historial-item {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -171,15 +171,11 @@ if st.session_state["pantalla"] == "formulario":
     cabina_qr = query_params.get("cabina", "1")
     adhesivo_qr = query_params.get("adhesivo", None)
 
-    # -------------------------------------------------------------
-    # REGLA ESPECIAL PARA "PRIMER":
-    # -------------------------------------------------------------
+    # REGLA ESPECIAL PARA "PRIMER"
     if adhesivo_qr and adhesivo_qr.strip().upper() == "PRIMER":
-        # Si el QR manda PRIMER, SOLO se muestra esa opción en el dropdown
         adhesivos_disponibles = ["PRIMER"]
         index_adhesivo = 0
     else:
-        # Carga normal filtrada por Línea desde la pestaña ADHESIVOS
         adhesivos_disponibles = df_adhesivos[
             df_adhesivos["DescripcionLinea"] == linea_qr
         ]["Adhesivo"].dropna().unique().tolist()
@@ -205,7 +201,7 @@ if st.session_state["pantalla"] == "formulario":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Registro de material vía QR</p>",
+        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Sistema de Solicitud de Material vía QR</p>",
         unsafe_allow_html=True,
     )
 
@@ -300,11 +296,11 @@ if st.session_state["pantalla"] == "formulario":
 elif st.session_state["pantalla"] == "historial":
 
     st.markdown(
-        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Folios Recientes</h2>",
+        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Tickets Recientes</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Registros de los últimos 4 días</p>",
+        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Folios registrados en los últimos 4 días</p>",
         unsafe_allow_html=True,
     )
 
@@ -325,7 +321,7 @@ elif st.session_state["pantalla"] == "historial":
                     <div class="historial-item">
                         <span class="badge-estatus">{row.get('Estatus', 'NUEVO')}</span>
                         <div style="font-size: 12px; color: #64748B; font-weight: 600;">
-                            Folio #{row.get('ID_Folio', '')} • {row.get('FechaCreacion', '')}
+                            Ticket #{row.get('ID_Folio', '')} • {row.get('FechaCreacion', '')}
                         </div>
                         <div style="font-size: 15px; font-weight: 700; color: #0F172A; margin-top: 4px;">
                             {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
@@ -338,7 +334,7 @@ elif st.session_state["pantalla"] == "historial":
                     unsafe_allow_html=True,
                 )
         else:
-            st.info("No hay folios registrados en los últimos 4 días.")
+            st.info("No hay tickets registrados en los últimos 4 días.")
     else:
         st.info("No hay registros en la base de datos.")
 
@@ -346,6 +342,6 @@ elif st.session_state["pantalla"] == "historial":
         "<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True
     )
 
-    if st.button("➕ CREAR OTRO FOLIO"):
+    if st.button("➕ CREAR OTRO TICKET"):
         st.session_state["pantalla"] = "formulario"
         st.rerun()
