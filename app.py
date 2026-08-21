@@ -19,29 +19,15 @@ st.set_page_config(
 def hora_mexico():
     return datetime.utcnow() - timedelta(hours=6)
 
-# 2. MANEJO NAVEGACIÓN Y PARÁMETROS DE URL
-query_params = st.query_params
-
-# Prioridad 1: Si se presionó el botón 'Atender' en alguna tarjeta
-atender_id = query_params.get("atender", None)
-
-if atender_id:
-    st.session_state["folio_atender"] = atender_id
-    st.session_state["pantalla"] = "admin_detalle"
-else:
-    # Prioridad 2: Leer la pantalla de la URL
-    p_param = query_params.get("p", None)
-    if p_param:
-        st.session_state["pantalla"] = p_param
-    elif "pantalla" not in st.session_state:
-        st.session_state["pantalla"] = "formulario"
-
+# 2. ESTADO DE NAVEGACIÓN Y SESIÓN
+if "pantalla" not in st.session_state:
+    st.session_state["pantalla"] = "formulario"
 if "folio_atender" not in st.session_state:
     st.session_state["folio_atender"] = None
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS
+# 3. ESTILOS CSS (MANTENIENDO 100% TUS DISEÑOS VISUALES)
 st.markdown(
     """
     <style>
@@ -154,10 +140,10 @@ st.markdown(
         font-size: 16px !important;
     }
 
-    /* BOTONES GENERALES */
+    /* BOTONES GENERALES DE ATENDER */
     div.stButton > button {
         width: 100% !important;
-        min-height: 40px !important;
+        min-height: 42px !important;
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
         border: none !important;
@@ -211,7 +197,7 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* SCROLLBAR GRIS OSCURO (#334155) */
+    /* SCROLLBAR GRIS OSCURO DE ALTO CONTRASTE (#334155) */
     .historial-box {
         max-height: 420px;
         overflow-y: auto;
@@ -244,35 +230,12 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    /* TARJETA DE SURTIDO CON BOTÓN INTEGRADO DENTRO */
-    .card-surtido-inside {
+    .card-surtido-text {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
         border-radius: 10px;
         padding: 10px 14px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    }
-
-    .btn-atender-inside {
-        background-color: #0284C7 !important;
-        color: #FFFFFF !important;
-        text-decoration: none !important;
-        padding: 8px 14px !important;
-        font-size: 12px !important;
-        font-weight: 700 !important;
-        border-radius: 8px !important;
-        white-space: nowrap !important;
-        margin-left: 12px !important;
-        box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
-        transition: all 0.2s ease !important;
-    }
-    .btn-atender-inside:hover {
-        background-color: #0369A1 !important;
-        color: #FFFFFF !important;
     }
 
     .badge-estatus {
@@ -319,21 +282,17 @@ with st.sidebar:
 
     if st.button("📋 Nuevo Folio (QR)", use_container_width=True):
         st.session_state["pantalla"] = "formulario"
-        st.query_params["p"] = "formulario"
         st.rerun()
 
     if st.button("📜 Historial Reciente", use_container_width=True):
         st.session_state["pantalla"] = "historial"
-        st.query_params["p"] = "historial"
         st.rerun()
 
     if st.button("📦 Panel de Surtido", use_container_width=True):
         if st.session_state["admin_autenticado"]:
             st.session_state["pantalla"] = "admin_panel"
-            st.query_params["p"] = "admin_panel"
         else:
             st.session_state["pantalla"] = "admin_login"
-            st.query_params["p"] = "admin_login"
         st.rerun()
 
     st.markdown("<br><br>", unsafe_allow_html=True)
@@ -361,6 +320,7 @@ if st.session_state["pantalla"] == "formulario":
         st.error(f"⚠️ Error de conexión con Google Sheets: {e}")
         st.stop()
 
+    query_params = st.query_params
     linea_qr = query_params.get("linea", "AUTO WRAPPERS 780B")
     cabina_qr = query_params.get("cabina", "1")
     adhesivo_qr = query_params.get("adhesivo", None)
@@ -476,7 +436,6 @@ if st.session_state["pantalla"] == "formulario":
             conn.update(worksheet="FOLIOS", data=df_folios_actualizado)
 
             st.session_state["pantalla"] = "historial"
-            st.query_params["p"] = "historial"
             st.rerun()
 
 
@@ -559,65 +518,88 @@ elif st.session_state["pantalla"] == "admin_login":
             if pass_input == CLAVE_ADMIN:
                 st.session_state["admin_autenticado"] = True
                 st.session_state["pantalla"] = "admin_panel"
-                st.query_params["p"] = "admin_panel"
                 st.rerun()
             else:
                 st.error("❌ Clave incorrecta.")
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (CON ENLACE DIRECTO A PANTALLA COMPLETA)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TRANSICIÓN NATIVA SIN RECARGA DE PÁGINA)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
-
-    st.markdown('<meta http-equiv="refresh" content="60">', unsafe_allow_html=True)
 
     st.markdown(
         "<h2 style='text-align: center; font-weight: 800; color: #0F172A;'>📦 Panel de Surtido en Vivo</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco cada 60s) • Pendientes (30 días)</div>",
+        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco silencioso cada 60s) • Pendientes (30 días)</div>",
         unsafe_allow_html=True,
     )
 
-    df_folios = conn.read(worksheet="FOLIOS", ttl=5)
+    @st.fragment(run_every=60)
+    def render_panel_surtido():
+        df_folios = conn.read(worksheet="FOLIOS", ttl=0)
 
-    if not df_folios.empty and "FechaCreacion" in df_folios.columns:
-        df_folios["Fecha_dt"] = pd.to_datetime(df_folios["FechaCreacion"], errors="coerce")
-        hace_30_dias = pd.Timestamp.now() - pd.Timedelta(days=30)
-        
-        df_pendientes = df_folios[
-            (df_folios["Fecha_dt"] >= hace_30_dias) & 
-            (df_folios["Estatus"].astype(str).str.upper() != "COMPLETADO")
-        ].copy()
-
-        df_pendientes = df_pendientes.sort_values(by="Fecha_dt", ascending=False)
-
-        if not df_pendientes.empty:
-            items_surtido_html = ""
-            for _, row in df_pendientes.iterrows():
-                f_id = str(row.get('ID_Folio', ''))
-                lin = str(row.get('Linea', ''))
-                cab = str(row.get('Cabina', ''))
-                est = str(row.get('Estatus', 'NUEVO'))
-                adh = str(row.get('Adhesivo', ''))
-                bot = str(row.get('Botes', ''))
-                prio = str(row.get('Prioridad', ''))
-                fec = str(row.get('FechaCreacion', ''))
-
-                # ENLACE CORREGIDO QUE REDIRIGE DIRECTO A LA PANTALLA COMPLETA DE ATENCIÓN
-                items_surtido_html += f'<div class="card-surtido-inside"><div style="flex-grow: 1;"><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div>'
+        if not df_folios.empty and "FechaCreacion" in df_folios.columns:
+            df_folios["Fecha_dt"] = pd.to_datetime(df_folios["FechaCreacion"], errors="coerce")
+            hace_30_dias = pd.Timestamp.now() - pd.Timedelta(days=30)
             
-            st.markdown(f'<div class="historial-box">{items_surtido_html}</div>', unsafe_allow_html=True)
+            df_pendientes = df_folios[
+                (df_folios["Fecha_dt"] >= hace_30_dias) & 
+                (df_folios["Estatus"].astype(str).str.upper() != "COMPLETADO")
+            ].copy()
+
+            df_pendientes = df_pendientes.sort_values(by="Fecha_dt", ascending=False)
+
+            if not df_pendientes.empty:
+                with st.container(height=420):
+                    for _, row in df_pendientes.iterrows():
+                        f_id = str(row.get('ID_Folio', ''))
+                        lin = str(row.get('Linea', ''))
+                        cab = str(row.get('Cabina', ''))
+                        est = str(row.get('Estatus', 'NUEVO'))
+                        adh = str(row.get('Adhesivo', ''))
+                        bot = str(row.get('Botes', ''))
+                        prio = str(row.get('Prioridad', ''))
+                        fec = str(row.get('FechaCreacion', ''))
+
+                        # DISPOSICIÓN EN COLUMNAS CON BOTÓN NATIVO EN MEMORIA
+                        c_info, c_btn = st.columns([82, 18], vertical_alignment="center")
+
+                        with c_info:
+                            st.markdown(
+                                f"""
+                                <div class="card-surtido-text">
+                                    <span class="badge-pendiente">{est}</span>
+                                    <div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">
+                                        #{f_id} — {lin} (Cabina {cab})
+                                    </div>
+                                    <div style="font-size: 11px; color: #475569; margin-top: 2px;">
+                                        🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span>
+                                    </div>
+                                </div>
+                            """,
+                                unsafe_allow_html=True,
+                            )
+
+                        with c_btn:
+                            if st.button("✏️ Atender", key=f"atender_btn_{f_id}", use_container_width=True):
+                                st.session_state["folio_atender"] = f_id
+                                st.session_state["pantalla"] = "admin_detalle"
+                                st.rerun()
+
+                        st.markdown("<div style='margin-bottom: 6px;'></div>", unsafe_allow_html=True)
+            else:
+                st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
         else:
-            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
-    else:
-        st.info("No hay registros en la base de datos.")
+            st.info("No hay registros en la base de datos.")
+
+    render_panel_surtido()
 
 
 # ==============================================================================
-# PANTALLA 5: DETALLE Y RESOLUCIÓN DE FOLIO (PANTALLA COMPLETA)
+# PANTALLA 5: DETALLE Y RESOLUCIÓN DE FOLIO
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_detalle":
 
@@ -680,7 +662,6 @@ elif st.session_state["pantalla"] == "admin_detalle":
 
                     st.toast(f"¡Folio #{folio_id} cerrado con éxito!", icon="✅")
                     st.session_state["pantalla"] = "admin_panel"
-                    st.query_params["p"] = "admin_panel"
                     st.rerun()
 
     else:
@@ -688,5 +669,4 @@ elif st.session_state["pantalla"] == "admin_detalle":
 
     if st.button("⬅️ Cancelar y Volver"):
         st.session_state["pantalla"] = "admin_panel"
-        st.query_params["p"] = "admin_panel"
         st.rerun()
