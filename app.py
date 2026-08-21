@@ -27,7 +27,7 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS (RECUADRO TARJETA UNIFICADO)
+# 3. ESTILOS CSS (CON SEPARACIÓN CLARA ENTRE TARJETAS)
 st.markdown(
     """
     <style>
@@ -197,7 +197,7 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* SCROLLBAR GRIS OSCURO (#334155) */
+    /* SCROLLBAR GRIS OSCURO DE ALTO CONTRASTE (#334155) */
     .historial-box {
         max-height: 420px;
         overflow-y: auto;
@@ -221,14 +221,19 @@ st.markdown(
         background-color: #0F172A !important;
     }
 
-    /* ESTILO DE LA TARJETA ENCUADRADA QUE CONTIENE TEXTO Y BOTÓN */
+    /* ------------------------------------------------------------- */
+    /* SEPARACIÓN CLARA ENTRE TARJETAS DE SURTIDO (12PX MARGIN-BOTTOM) */
+    /* ------------------------------------------------------------- */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        margin-bottom: 12px !important;
+    }
+
     div[data-testid="stVerticalBlockBorderWrapper"] > div {
         background-color: #FFFFFF !important;
         border: 1px solid #E2E8F0 !important;
         border-radius: 12px !important;
         padding: 10px 14px !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
-        margin-bottom: 8px !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
     }
 
     .historial-item-compact {
@@ -526,7 +531,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TARJETA UNIFICADA EN EL MISMO DIV)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (CON SEPARACIÓN DE TARJETAS DE 12PX)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -559,7 +564,7 @@ elif st.session_state["pantalla"] == "admin_panel":
                     for _, row in df_pendientes.iterrows():
                         f_id = str(row.get('ID_Folio', ''))
                         
-                        # CONTENEDOR ENCUADRADO QUE ENCIERRA TEXTO Y BOTÓN JUNTOS
+                        # CADA TARJETA TIENE SU PROPIO CONTAINER ENCUADRADO Y SEPARADO
                         with st.container(border=True):
                             col_info, col_btn = st.columns([80, 20], vertical_alignment="center")
                             
