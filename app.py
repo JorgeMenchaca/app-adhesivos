@@ -39,17 +39,31 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS
+# 3. ESTILOS CSS (SIDEBAR BLOQUEADO FIJO + SCROLLBAR GRIS OSCURO)
 st.markdown(
     """
     <style>
     #MainMenu, footer, header {display: none !important;}
     
+    /* ------------------------------------------------------------- */
+    /* FIX CRÍTICO: BLOQUEAR PANEL IZQUIERDO PARA QUE NO DESAPAREZCA EN REFRESCO */
+    /* ------------------------------------------------------------- */
     [data-testid="stSidebarCollapseButton"], 
     [data-testid="collapsedControl"] {
         display: none !important;
     }
+
+    @media (min-width: 768px) {
+        [data-testid="stSidebar"] {
+            display: block !important;
+            visibility: visible !important;
+            min-width: 260px !important;
+            max-width: 260px !important;
+            transform: none !important;
+        }
+    }
     
+    /* FONDO PRINCIPAL PASTEL */
     .stApp {
         background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
                     radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
@@ -66,6 +80,7 @@ st.markdown(
         margin: 0 auto !important;
     }
 
+    /* PANEL IZQUIERDO DASHBOARD */
     [data-testid="stSidebar"] {
         background-color: #0F172A !important;
         border-right: 1px solid #1E293B !important;
@@ -97,6 +112,7 @@ st.markdown(
         border-color: #0284C7 !important;
     }
 
+    /* FIX BOTÓN VERDE EN FORMULARIOS */
     div[class*="st-key-FormSubmitter-"],
     div[data-testid="stElementContainer"]:has(div[data-testid="stFormSubmitButton"]) {
         width: 100% !important;
@@ -139,6 +155,7 @@ st.markdown(
         font-size: 16px !important;
     }
 
+    /* BOTONES GENERALES */
     div.stButton > button {
         width: 100% !important;
         min-height: 40px !important;
@@ -195,28 +212,30 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* SCROLLBAR AZUL ALTO CONTRASTE */
+    /* ------------------------------------------------------------- */
+    /* SCROLLBAR GRIS OSCURO DE ALTO CONTRASTE (#334155) */
+    /* ------------------------------------------------------------- */
     .historial-box {
         max-height: 420px;
         overflow-y: auto;
-        padding-right: 8px;
+        padding-right: 10px;
         margin-bottom: 16px;
     }
     
     .historial-box::-webkit-scrollbar {
-        width: 8px;
+        width: 10px !important;
     }
     .historial-box::-webkit-scrollbar-track {
-        background: #E2E8F0;
-        border-radius: 10px;
+        background: #E2E8F0 !important;
+        border-radius: 10px !important;
     }
     .historial-box::-webkit-scrollbar-thumb {
-        background-color: #0284C7;
-        border-radius: 10px;
-        border: 2px solid #E2E8F0;
+        background-color: #334155 !important; /* GRIS OSCURO SLATE DE ALTO CONTRASTE */
+        border-radius: 10px !important;
+        border: 2px solid #E2E8F0 !important;
     }
     .historial-box::-webkit-scrollbar-thumb:hover {
-        background-color: #0369A1;
+        background-color: #0F172A !important; /* CASI NEGRO AL PASAR EL MOUSE */
     }
 
     .historial-item-compact {
@@ -228,7 +247,7 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    /* TARJETA DE SURTIDO CON BOTÓN DENTRO Y DERECHA */
+    /* TARJETA DE SURTIDO CON BOTÓN INTEGRADO DENTRO */
     .card-surtido-inside {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -550,7 +569,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (HTML 100% LIMPIO SIN ERRORES)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (MÓDULO CORREGIDO)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -590,7 +609,6 @@ elif st.session_state["pantalla"] == "admin_panel":
                 prio = str(row.get('Prioridad', ''))
                 fec = str(row.get('FechaCreacion', ''))
 
-                # CADENA EN UNA SOLA LÍNEA CONTINUA PARA EVITAR EL CAJÓN NEGRO DE CÓDIGO
                 items_surtido_html += f'<div class="card-surtido-inside"><div style="flex-grow: 1;"><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?p=admin_panel&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div>'
             
             st.markdown(f'<div class="historial-box">{items_surtido_html}</div>', unsafe_allow_html=True)
