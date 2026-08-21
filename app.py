@@ -7,7 +7,7 @@ from streamlit_gsheets import GSheetsConnection
 # CLAVE DE ACCESO ADMINISTRADOR
 CLAVE_ADMIN = "1234"
 
-# 1. CONFIGURACIÓN DE PÁGINA (Sidebar expandido por defecto)
+# 1. CONFIGURACIÓN DE PÁGINA (Sidebar expandido)
 st.set_page_config(
     page_title="Dashboard | Gestión de Folios",
     page_icon="📦",
@@ -27,11 +27,19 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS (PANEL IZQUIERDO DASHBOARD MODERNO)
+# 3. ESTILOS CSS CORREGIDOS (SIN BOTÓN COLLAPSE QUE SE ROMPE)
 st.markdown(
     """
     <style>
     #MainMenu, footer, header {display: none !important;}
+    
+    /* ------------------------------------------------------------- */
+    /* FIX CRÍTICO: OCULTAR EL BOTÓN DE COLAPSAR Y RESTAURAR ICONOS */
+    /* ------------------------------------------------------------- */
+    [data-testid="stSidebarCollapseButton"], 
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
     
     /* FONDO PRINCIPAL PASTEL */
     .stApp {
@@ -43,7 +51,6 @@ st.markdown(
         background-attachment: fixed !important;
     }
     
-    /* ANCHO DEL CONTENIDO PRINCIPAL CENTRADO */
     .block-container {
         max-width: 800px !important;
         padding-top: 2rem !important;
@@ -51,20 +58,16 @@ st.markdown(
         margin: 0 auto !important;
     }
 
-    /* ------------------------------------------------------------- */
     /* ESTILO DEL PANEL IZQUIERDO (SIDEBAR DARK DASHBOARD) */
-    /* ------------------------------------------------------------- */
     [data-testid="stSidebar"] {
         background-color: #0F172A !important;
         border-right: 1px solid #1E293B !important;
         padding-top: 1rem !important;
     }
     
-    [data-testid="stSidebar"] *, 
     [data-testid="stSidebar"] p, 
     [data-testid="stSidebar"] span {
         color: #F8FAFC !important;
-        font-family: 'Inter', system-ui, sans-serif !important;
     }
     
     /* BOTONES DEL PANEL IZQUIERDO */
@@ -157,10 +160,6 @@ st.markdown(
         width: 100% !important;
     }
     
-    label, p, span, h1, h2, h3, .stMarkdown {
-        font-family: 'Inter', system-ui, sans-serif !important;
-    }
-    
     [data-testid="stForm"] {
         background-color: #FFFFFF !important;
         border-radius: 20px !important;
@@ -240,7 +239,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 
 # ==============================================================================
-# PANEL IZQUIERDO DE NAVEGACIÓN (SIDEBAR DASHBOARD)
+# PANEL IZQUIERDO DE NAVEGACIÓN (SIDEBAR DASHBOARD FIJO)
 # ==============================================================================
 with st.sidebar:
     st.markdown(
@@ -556,7 +555,7 @@ elif st.session_state["pantalla"] == "admin_panel":
                         st.rerun()
                     st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
         else:
-            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
+            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir.")
     else:
         st.info("No hay registros en la base de datos.")
 
