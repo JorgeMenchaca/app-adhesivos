@@ -7,12 +7,12 @@ from streamlit_gsheets import GSheetsConnection
 # CLAVE DE ACCESO ADMINISTRADOR
 CLAVE_ADMIN = "1234"
 
-# 1. CONFIGURACIÓN DE PÁGINA
+# 1. CONFIGURACIÓN DE PÁGINA (Sidebar expandido por defecto)
 st.set_page_config(
-    page_title="Sistema de Folios & Surtido",
+    page_title="Dashboard | Gestión de Folios",
     page_icon="📦",
-    layout="centered",
-    initial_sidebar_state="collapsed",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 # HELPER: HORA ZONA CENTRAL MÉXICO (UTC-6)
@@ -27,13 +27,13 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS RESPONSIVOS (ADAPTATIVO PC / MÓVIL)
+# 3. ESTILOS CSS (PANEL IZQUIERDO DASHBOARD MODERNO)
 st.markdown(
     """
     <style>
-    #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
+    #MainMenu, footer, header {display: none !important;}
     
-    /* FONDO DE GRADIENTE PASTEL */
+    /* FONDO PRINCIPAL PASTEL */
     .stApp {
         background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
                     radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
@@ -43,25 +43,52 @@ st.markdown(
         background-attachment: fixed !important;
     }
     
-    /* ANCHO POR DEFECTO EN MÓVIL */
+    /* ANCHO DEL CONTENIDO PRINCIPAL CENTRADO */
     .block-container {
-        max-width: 500px !important;
-        padding-top: 1rem !important;
+        max-width: 800px !important;
+        padding-top: 2rem !important;
         padding-bottom: 2rem !important;
-    }
-    
-    /* ADAPTACIÓN PARA COMPUTADORAS / PANTALLAS GRANDES (>768px) */
-    @media (min-width: 768px) {
-        .block-container {
-            max-width: 950px !important;
-        }
-        .admin-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
+        margin: 0 auto !important;
     }
 
+    /* ------------------------------------------------------------- */
+    /* ESTILO DEL PANEL IZQUIERDO (SIDEBAR DARK DASHBOARD) */
+    /* ------------------------------------------------------------- */
+    [data-testid="stSidebar"] {
+        background-color: #0F172A !important;
+        border-right: 1px solid #1E293B !important;
+        padding-top: 1rem !important;
+    }
+    
+    [data-testid="stSidebar"] *, 
+    [data-testid="stSidebar"] p, 
+    [data-testid="stSidebar"] span {
+        color: #F8FAFC !important;
+        font-family: 'Inter', system-ui, sans-serif !important;
+    }
+    
+    /* BOTONES DEL PANEL IZQUIERDO */
+    [data-testid="stSidebar"] div.stButton > button {
+        width: 100% !important;
+        background-color: #1E293B !important;
+        color: #F8FAFC !important;
+        border: 1px solid #334155 !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        padding: 10px 16px !important;
+        margin-bottom: 4px !important;
+        transition: all 0.2s ease !important;
+        text-align: left !important;
+    }
+    
+    [data-testid="stSidebar"] div.stButton > button:hover {
+        background-color: #0284C7 !important;
+        color: #FFFFFF !important;
+        border-color: #0284C7 !important;
+    }
+
+    /* FIX BOTÓN VERDE EN FORMULARIOS */
     div[class*="st-key-FormSubmitter-"],
     div[data-testid="stElementContainer"]:has(div[data-testid="stFormSubmitButton"]) {
         width: 100% !important;
@@ -97,23 +124,24 @@ st.markdown(
         background-color: #059669 !important;
         color: #FFFFFF !important;
     }
-    
+
     div[data-testid="stFormSubmitButton"] > button p {
         color: #FFFFFF !important;
         font-weight: 800 !important;
         font-size: 16px !important;
     }
-    
+
+    /* BOTONES PRINCIPALES GENERALES */
     div.stButton > button {
         width: 100% !important;
-        min-height: 42px !important;
+        min-height: 44px !important;
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
         border: none !important;
         font-weight: 700 !important;
         border-radius: 10px !important;
     }
-    
+
     [data-testid="stWidgetLabel"] {
         display: flex !important;
         justify-content: center !important;
@@ -212,26 +240,47 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 
 # ==============================================================================
-# NAV BAR GLOBAL (MENÚ DE NAVEGACIÓN SUPERIOR)
+# PANEL IZQUIERDO DE NAVEGACIÓN (SIDEBAR DASHBOARD)
 # ==============================================================================
-col_n1, col_n2, col_n3 = st.columns(3)
-with col_n1:
-    if st.button("📋 Nuevo", use_container_width=True):
+with st.sidebar:
+    st.markdown(
+        """
+        <div style='text-align: center; padding: 10px 0;'>
+            <h2 style='color: #F8FAFC !important; font-weight: 800; margin: 0;'>📦 Adhesivos</h2>
+            <p style='color: #38BDF8 !important; font-size: 12px; font-weight: 600; margin-top: 2px;'>Mesa de Control v2.0</p>
+        </div>
+        <hr style='border-color: #334155; margin-top: 0; margin-bottom: 16px;'>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<p style='font-size: 11px; color: #94A3B8 !important; font-weight: 700; text-transform: uppercase;'>Navegación</p>", unsafe_allow_html=True)
+
+    if st.button("📋 Nuevo Folio (QR)", use_container_width=True):
         st.session_state["pantalla"] = "formulario"
         st.rerun()
-with col_n2:
-    if st.button("📜 Historial", use_container_width=True):
+
+    if st.button("📜 Historial Reciente", use_container_width=True):
         st.session_state["pantalla"] = "historial"
         st.rerun()
-with col_n3:
-    if st.button("📦 Surtido", use_container_width=True):
+
+    if st.button("📦 Panel de Surtido", use_container_width=True):
         if st.session_state["admin_autenticado"]:
             st.session_state["pantalla"] = "admin_panel"
         else:
             st.session_state["pantalla"] = "admin_login"
         st.rerun()
 
-st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div style='background-color: #1E293B; border-radius: 10px; padding: 12px; text-align: center;'>
+            <span style='color: #4ADE80 !important; font-size: 12px; font-weight: 700;'>🟢 Servidor Conectado</span><br>
+            <span style='color: #94A3B8 !important; font-size: 11px;'>Base de Datos en Tiempo Real</span>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 # ==============================================================================
@@ -439,7 +488,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
     with st.form("form_login"):
         pass_input = st.text_input("Clave de Acceso", type="password", placeholder="****")
-        btn_login = st.form_submit_button("INGRESAR")
+        btn_login = st.form_submit_button("INGRESAR AL PANEL")
 
         if btn_login:
             if pass_input == CLAVE_ADMIN:
@@ -451,11 +500,10 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO (AUTO-REFRESCO 60s + ADAPTATIVO PC/MÓVIL)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
-    # TEMPORIZADOR DE AUTO-REFRESCO CADA 60 SEGUNDOS
     st.markdown('<meta http-equiv="refresh" content="60">', unsafe_allow_html=True)
 
     st.markdown(
@@ -463,7 +511,7 @@ elif st.session_state["pantalla"] == "admin_panel":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Auto-sincronizado en vivo (Refresco cada 60s) • Folios pendientes (30 días)</div>",
+        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en tiempo real (Refresco cada 60s) • Pendientes (30 días)</div>",
         unsafe_allow_html=True,
     )
 
@@ -481,7 +529,6 @@ elif st.session_state["pantalla"] == "admin_panel":
         df_pendientes = df_pendientes.sort_values(by="Fecha_dt", ascending=False)
 
         if not df_pendientes.empty:
-            # Renderizado adaptativo
             for _, row in df_pendientes.iterrows():
                 f_id = str(row.get('ID_Folio', ''))
                 
@@ -509,7 +556,7 @@ elif st.session_state["pantalla"] == "admin_panel":
                         st.rerun()
                     st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
         else:
-            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir.")
+            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
     else:
         st.info("No hay registros en la base de datos.")
 
