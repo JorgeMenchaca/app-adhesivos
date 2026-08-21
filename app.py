@@ -16,20 +16,20 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS PERSONALIZADOS (VERDE + FONDO INDUSTRIAL)
+# 3. ESTILOS CSS CORREGIDOS (FORZADO DE BOTÓN VERDE Y DROPDOWNS CLAROS)
 st.markdown(
     """
     <style>
-    /* Ocultar elementos de Streamlit */
+    /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO TEMÁTICO INDUSTRIAL / ADHESIVOS CON OVERLAY SUAVE */
+    /* FONDO AUTOMOTRIZ INDUSTRIAL (Línea de ensamblaje robotizada) */
     .stApp {
         background-image: linear-gradient(rgba(248, 250, 252, 0.92), rgba(248, 250, 252, 0.92)), 
-                          url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1200');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
+                          url('https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&q=80&w=1200') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
     }
     
     .block-container {
@@ -38,7 +38,7 @@ st.markdown(
         padding-bottom: 2rem !important;
     }
     
-    /* FORZAR TEXTOS OSCUROS LEGIBLES */
+    /* FORZAR COLORES OSCUROS EN TEXTOS */
     label, p, span, h1, h2, h3, .stMarkdown {
         color: #0F172A !important;
         font-family: 'Inter', system-ui, sans-serif !important;
@@ -51,22 +51,50 @@ st.markdown(
         margin-bottom: 6px !important;
     }
     
-    /* DROPDOWNS (SELECTBOX) ELEGANTES */
+    /* CORRECCIÓN DE DROPDOWNS (SELECTBOX EN BLANCO CLARO) */
     div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         border: 1.5px solid #CBD5E1 !important;
         border-radius: 10px !important;
-        color: #0F172A !important;
         min-height: 48px !important;
     }
     
-    div[data-baseweb="select"] * {
+    div[data-baseweb="select"] span, div[data-baseweb="select"] div {
         color: #0F172A !important;
         background-color: transparent !important;
         font-weight: 600 !important;
     }
+
+    /* CORRECCIÓN EXACTA PARA EL BOTÓN DE FORMULARIO (VERDE, ANCHO COMPLETO, LETRA BLANCA) */
+    div[data-testid="stFormSubmitButton"] {
+        width: 100% !important;
+    }
     
-    /* CONTENEDOR TARJETA */
+    div[data-testid="stFormSubmitButton"] > button {
+        width: 100% !important;
+        background-color: #16A34A !important; /* Verde Esmeralda */
+        color: #FFFFFF !important; /* Texto Blanco Brillante */
+        border: none !important;
+        padding: 14px 24px !important;
+        font-size: 16px !important;
+        font-weight: 800 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3) !important;
+        transition: all 0.2s ease !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    div[data-testid="stFormSubmitButton"] > button:hover {
+        background-color: #15803D !important;
+        color: #FFFFFF !important;
+    }
+    
+    div[data-testid="stFormSubmitButton"] > button p {
+        color: #FFFFFF !important; /* Forzar texto blanco en el párrafo del botón */
+    }
+    
+    /* TARJETA BLANCA DEL FORMULARIO */
     [data-testid="stForm"] {
         background-color: #FFFFFF !important;
         border-radius: 16px !important;
@@ -75,7 +103,7 @@ st.markdown(
         padding: 24px !important;
     }
     
-    /* TARJETAS DEL QR */
+    /* TARJETAS DE INFORMACIÓN DEL QR */
     .info-card {
         background-color: #FFFFFF;
         border-radius: 12px;
@@ -83,9 +111,8 @@ st.markdown(
         margin-bottom: 8px;
         border-left: 4px solid #0284C7;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-        border-top: 1px solid #F1F5F9;
-        border-right: 1px solid #F1F5F9;
-        border-bottom: 1px solid #F1F5F9;
+        border: 1px solid #E2E8F0;
+        border-left: 4px solid #0284C7;
     }
     .info-label {
         font-size: 11px;
@@ -100,26 +127,6 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* BOTÓN VERDE ESMERALDA A ANCHO COMPLETO */
-    div.stButton > button {
-        width: 100% !important;
-        background-color: #16A34A !important; /* Verde Esmeralda */
-        color: #FFFFFF !important; /* Texto Blanco */
-        border: none !important;
-        padding: 14px 24px !important;
-        font-size: 16px !important;
-        font-weight: 800 !important;
-        border-radius: 10px !important;
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3) !important;
-        transition: all 0.2s ease !important;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    div.stButton > button:hover {
-        background-color: #15803D !important; /* Verde más oscuro al pasar mouse */
-        transform: translateY(-1px);
-    }
-    
     /* TARJETA DE HISTORIAL */
     .historial-item {
         background-color: #FFFFFF;
@@ -273,7 +280,6 @@ if st.session_state["pantalla"] == "formulario":
             )
             conn.update(worksheet="FOLIOS", data=df_folios_actualizado)
 
-            # Redirigir a la pantalla de Historial
             st.session_state["pantalla"] = "historial"
             st.rerun()
 
