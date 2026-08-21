@@ -7,7 +7,7 @@ from streamlit_gsheets import GSheetsConnection
 # CLAVE DE ACCESO ADMINISTRADOR
 CLAVE_ADMIN = "1234"
 
-# 1. CONFIGURACIÓN DE PÁGINA (Sidebar expandido)
+# 1. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(
     page_title="Dashboard | Gestión de Folios",
     page_icon="📦",
@@ -19,15 +19,30 @@ st.set_page_config(
 def hora_mexico():
     return datetime.utcnow() - timedelta(hours=6)
 
-# 2. ESTADO DE NAVEGACIÓN Y SESIÓN
+# 2. CAPTURA Y FIJACIÓN DE PANTALLA EN URL (Evita reseteos en auto-refresco)
+query_params = st.query_params
+
+# Si viene una orden de atender por URL (?atender=ID)
+atender_id = query_params.get("atender", None)
+if atender_id:
+    st.session_state["folio_atender"] = atender_id
+    st.session_state["pantalla"] = "admin_detalle"
+    del st.query_params["atender"]
+
+# Sincronizar pantalla con URL
+p_param = query_params.get("p", None)
 if "pantalla" not in st.session_state:
-    st.session_state["pantalla"] = "formulario"
+    st.session_state["pantalla"] = p_param if p_param else "formulario"
+elif p_param and p_param != st.session_state["pantalla"]:
+    # Si la URL tiene una pantalla definida por refresco
+    st.session_state["pantalla"] = p_param
+
 if "folio_atender" not in st.session_state:
     st.session_state["folio_atender"] = None
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS CON SIMETRÍA EXACTA PARA PANEL DE SURTIDO
+# 3. ESTILOS CSS (BOTÓN INSIDE + SCROLL DE ALTO CONTRASTE)
 st.markdown(
     """
     <style>
@@ -187,19 +202,30 @@ st.markdown(
         font-weight: 700;
     }
 
+    /* ------------------------------------------------------------- */
+    /* CAJA Y BARRA DE SCROLL DE ALTO CONTRASTE (AZUL VISIBLE) */
+    /* ------------------------------------------------------------- */
     .historial-box {
         max-height: 420px;
         overflow-y: auto;
-        padding-right: 4px;
+        padding-right: 8px;
         margin-bottom: 16px;
     }
     
     .historial-box::-webkit-scrollbar {
-        width: 6px;
+        width: 8px;
+    }
+    .historial-box::-webkit-scrollbar-track {
+        background: #E2E8F0;
+        border-radius: 10px;
     }
     .historial-box::-webkit-scrollbar-thumb {
-        background-color: #CBD5E1;
+        background-color: #0284C7;
         border-radius: 10px;
+        border: 2px solid #E2E8F0;
+    }
+    .historial-box::-webkit-scrollbar-thumb:hover {
+        background-color: #0369A1;
     }
 
     .historial-item-compact {
@@ -207,31 +233,39 @@ st.markdown(
         border: 1px solid #E2E8F0;
         border-radius: 10px;
         padding: 10px 14px;
+        margin-bottom: 8px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    /* ------------------------------------------------------------- */
-    /* SIMETRÍA EXACTA PARA TARJETA Y BOTÓN EN PANEL DE SURTIDO */
-    /* ------------------------------------------------------------- */
-    .surtido-card-compact {
+    /* TARJETA DE SURTIDO CON BOTÓN INTEGRADO DENTRO */
+    .card-surtido-inside {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
         border-radius: 10px;
-        padding: 8px 12px;
-        height: 62px !important;
+        padding: 10px 14px;
+        margin-bottom: 8px;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        justify-content: space-between;
+        align-items: center;
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    .col-surtido-btn div.stButton > button {
-        height: 62px !important;
-        min-height: 62px !important;
-        margin: 0 !important;
-        border-radius: 10px !important;
-        font-size: 13px !important;
+    .btn-atender-inside {
+        background-color: #0284C7 !important;
+        color: #FFFFFF !important;
+        text-decoration: none !important;
+        padding: 8px 14px !important;
+        font-size: 12px !important;
         font-weight: 700 !important;
+        border-radius: 8px !important;
+        white-space: nowrap !important;
+        margin-left: 12px !important;
+        box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+        transition: all 0.2s ease !important;
+    }
+    .btn-atender-inside:hover {
+        background-color: #0369A1 !important;
+        color: #FFFFFF !important;
     }
 
     .badge-estatus {
@@ -278,17 +312,21 @@ with st.sidebar:
 
     if st.button("📋 Nuevo Folio (QR)", use_container_width=True):
         st.session_state["pantalla"] = "formulario"
+        st.query_params["p"] = "formulario"
         st.rerun()
 
     if st.button("📜 Historial Reciente", use_container_width=True):
         st.session_state["pantalla"] = "historial"
+        st.query_params["p"] = "historial"
         st.rerun()
 
     if st.button("📦 Panel de Surtido", use_container_width=True):
         if st.session_state["admin_autenticado"]:
             st.session_state["pantalla"] = "admin_panel"
+            st.query_params["p"] = "admin_panel"
         else:
             st.session_state["pantalla"] = "admin_login"
+            st.query_params["p"] = "admin_login"
         st.rerun()
 
     st.markdown("<br><br>", unsafe_allow_html=True)
@@ -316,7 +354,6 @@ if st.session_state["pantalla"] == "formulario":
         st.error(f"⚠️ Error de conexión con Google Sheets: {e}")
         st.stop()
 
-    query_params = st.query_params
     linea_qr = query_params.get("linea", "AUTO WRAPPERS 780B")
     cabina_qr = query_params.get("cabina", "1")
     adhesivo_qr = query_params.get("adhesivo", None)
@@ -412,7 +449,7 @@ if st.session_state["pantalla"] == "formulario":
                         "NivelActual": "",
                         "DescripcionResolucion": "",
                         "Prioridad": prioridad_val,
-                        "Escalacion": "",  # ESCALACION VACÍA AL GUARDAR
+                        "Escalacion": "",
                         "UsuarioCreacion": "operador_qr@empresa.com",
                         "UsuarioCerrado": "",
                         "minutosTranscurridos": 0,
@@ -432,6 +469,7 @@ if st.session_state["pantalla"] == "formulario":
             conn.update(worksheet="FOLIOS", data=df_folios_actualizado)
 
             st.session_state["pantalla"] = "historial"
+            st.query_params["p"] = "historial"
             st.rerun()
 
 
@@ -514,13 +552,14 @@ elif st.session_state["pantalla"] == "admin_login":
             if pass_input == CLAVE_ADMIN:
                 st.session_state["admin_autenticado"] = True
                 st.session_state["pantalla"] = "admin_panel"
+                st.query_params["p"] = "admin_panel"
                 st.rerun()
             else:
                 st.error("❌ Clave incorrecta.")
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (MÓDULO SIMÉTRICO Y COMPACTO)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (BOTÓN DENTRO Y FIJO EN AUTO-REFRESCO)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -549,40 +588,34 @@ elif st.session_state["pantalla"] == "admin_panel":
         df_pendientes = df_pendientes.sort_values(by="Fecha_dt", ascending=False)
 
         if not df_pendientes.empty:
-            with st.container(height=420):
-                for _, row in df_pendientes.iterrows():
-                    f_id = str(row.get('ID_Folio', ''))
-                    
-                    # COLUMNAS CON ALINEACIÓN VERTICAL CENTRADA EXACTA
-                    col_det, col_btn = st.columns([81, 19], vertical_alignment="center")
-                    
-                    with col_det:
-                        st.markdown(
-                            f"""
-                            <div class="surtido-card-compact">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 13px; font-weight: 700; color: #0F172A;">
-                                        #{f_id} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
-                                    </span>
-                                    <span class="badge-pendiente">{row.get('Estatus', 'NUEVO')}</span>
-                                </div>
-                                <div style="font-size: 11px; color: #475569; margin-top: 2px;">
-                                    🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • Prioridad: <b style="color:#D97706;">{row.get('Prioridad', '')}</b> • {row.get('FechaCreacion', '')}
-                                </div>
-                            </div>
-                        """,
-                            unsafe_allow_html=True,
-                        )
-                    
-                    with col_btn:
-                        st.markdown('<div class="col-surtido-btn">', unsafe_allow_html=True)
-                        if st.button("✏️ Atender", key=f"btn_{f_id}", use_container_width=True):
-                            st.session_state["folio_atender"] = f_id
-                            st.session_state["pantalla"] = "admin_detalle"
-                            st.rerun()
-                        st.markdown('</div>', unsafe_allow_html=True)
+            items_surtido_html = ""
+            for _, row in df_pendientes.iterrows():
+                f_id = str(row.get('ID_Folio', ''))
+                lin = str(row.get('Linea', ''))
+                cab = str(row.get('Cabina', ''))
+                est = str(row.get('Estatus', 'NUEVO'))
+                adh = str(row.get('Adhesivo', ''))
+                bot = str(row.get('Botes', ''))
+                prio = str(row.get('Prioridad', ''))
+                fec = str(row.get('FechaCreacion', ''))
 
-                    st.markdown("<div style='margin-bottom: 6px;'></div>", unsafe_allow_html=True)
+                # BOTÓN DENTRO DE LA TARJETA HTML ALINEADO A LA DERECHA
+                items_surtido_html += f'''
+                <div class="card-surtido-inside">
+                    <div style="flex-grow: 1;">
+                        <span class="badge-pendiente">{est}</span>
+                        <div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">
+                            #{f_id} — {lin} (Cabina {cab})
+                        </div>
+                        <div style="font-size: 11px; color: #475569; margin-top: 2px;">
+                            🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span>
+                        </div>
+                    </div>
+                    <a href="?p=admin_panel&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a>
+                </div>
+                '''
+            
+            st.markdown(f'<div class="historial-box">{items_surtido_html}</div>', unsafe_allow_html=True)
         else:
             st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
     else:
@@ -653,6 +686,7 @@ elif st.session_state["pantalla"] == "admin_detalle":
 
                     st.toast(f"¡Folio #{folio_id} cerrado con éxito!", icon="✅")
                     st.session_state["pantalla"] = "admin_panel"
+                    st.query_params["p"] = "admin_panel"
                     st.rerun()
 
     else:
@@ -660,4 +694,5 @@ elif st.session_state["pantalla"] == "admin_detalle":
 
     if st.button("⬅️ Cancelar y Volver"):
         st.session_state["pantalla"] = "admin_panel"
+        st.query_params["p"] = "admin_panel"
         st.rerun()
