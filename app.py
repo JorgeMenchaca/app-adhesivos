@@ -19,35 +19,37 @@ st.set_page_config(
 def hora_mexico():
     return datetime.utcnow() - timedelta(hours=6)
 
-# 2. CAPTURA Y FIJACIÓN DE PANTALLA EN URL
+# 2. MANEJO INTELIGENTE DE NAVEGACIÓN Y PARÁMETROS DE URL
 query_params = st.query_params
 
+# Prioridad 1: Si se presionó el botón 'Atender' en alguna tarjeta
 atender_id = query_params.get("atender", None)
+
 if atender_id:
     st.session_state["folio_atender"] = atender_id
     st.session_state["pantalla"] = "admin_detalle"
-    del st.query_params["atender"]
-
-p_param = query_params.get("p", None)
-if "pantalla" not in st.session_state:
-    st.session_state["pantalla"] = p_param if p_param else "formulario"
-elif p_param and p_param != st.session_state["pantalla"]:
-    st.session_state["pantalla"] = p_param
+    st.query_params["p"] = "admin_detalle"
+    if "atender" in st.query_params:
+        del st.query_params["atender"]
+else:
+    # Prioridad 2: Leer pantalla desde el parámetro 'p' de la URL
+    p_param = query_params.get("p", None)
+    if p_param:
+        st.session_state["pantalla"] = p_param
+    elif "pantalla" not in st.session_state:
+        st.session_state["pantalla"] = "formulario"
 
 if "folio_atender" not in st.session_state:
     st.session_state["folio_atender"] = None
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS (SIDEBAR BLOQUEADO FIJO + SCROLLBAR GRIS OSCURO)
+# 3. ESTILOS CSS
 st.markdown(
     """
     <style>
     #MainMenu, footer, header {display: none !important;}
     
-    /* ------------------------------------------------------------- */
-    /* FIX CRÍTICO: BLOQUEAR PANEL IZQUIERDO PARA QUE NO DESAPAREZCA EN REFRESCO */
-    /* ------------------------------------------------------------- */
     [data-testid="stSidebarCollapseButton"], 
     [data-testid="collapsedControl"] {
         display: none !important;
@@ -212,9 +214,7 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* ------------------------------------------------------------- */
     /* SCROLLBAR GRIS OSCURO DE ALTO CONTRASTE (#334155) */
-    /* ------------------------------------------------------------- */
     .historial-box {
         max-height: 420px;
         overflow-y: auto;
@@ -230,12 +230,12 @@ st.markdown(
         border-radius: 10px !important;
     }
     .historial-box::-webkit-scrollbar-thumb {
-        background-color: #334155 !important; /* GRIS OSCURO SLATE DE ALTO CONTRASTE */
+        background-color: #334155 !important;
         border-radius: 10px !important;
         border: 2px solid #E2E8F0 !important;
     }
     .historial-box::-webkit-scrollbar-thumb:hover {
-        background-color: #0F172A !important; /* CASI NEGRO AL PASAR EL MOUSE */
+        background-color: #0F172A !important;
     }
 
     .historial-item-compact {
@@ -247,7 +247,7 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    /* TARJETA DE SURTIDO CON BOTÓN INTEGRADO DENTRO */
+    /* TARJETA DE SURTIDO CON BOTÓN DENTRO Y DERECHA */
     .card-surtido-inside {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -569,7 +569,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (MÓDULO CORREGIDO)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (MÓDULO REDIRECCIÓN CORREGIDO)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -609,7 +609,8 @@ elif st.session_state["pantalla"] == "admin_panel":
                 prio = str(row.get('Prioridad', ''))
                 fec = str(row.get('FechaCreacion', ''))
 
-                items_surtido_html += f'<div class="card-surtido-inside"><div style="flex-grow: 1;"><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?p=admin_panel&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div>'
+                # ENLACE DIRECTO A LA PANTALLA DE DETALLE (p=admin_detalle)
+                items_surtido_html += f'<div class="card-surtido-inside"><div style="flex-grow: 1;"><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?p=admin_detalle&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div>'
             
             st.markdown(f'<div class="historial-box">{items_surtido_html}</div>', unsafe_allow_html=True)
         else:
