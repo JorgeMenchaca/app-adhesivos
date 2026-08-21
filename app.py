@@ -315,7 +315,7 @@ if st.session_state["pantalla"] == "formulario":
 
 
 # ==============================================================================
-# PANTALLA 2: HISTORIAL OPTIMIZADO (Buscador + Top 15 Más Recientes)
+# PANTALLA 2: HISTORIAL OPTIMIZADO (Top 50 Más Recientes)
 # ==============================================================================
 elif st.session_state["pantalla"] == "historial":
 
@@ -324,7 +324,7 @@ elif st.session_state["pantalla"] == "historial":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 12px;'>Mostrando los 15 más recientes</div>",
+        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 12px;'>Mostrando los 50 más recientes</div>",
         unsafe_allow_html=True,
     )
 
@@ -352,8 +352,8 @@ elif st.session_state["pantalla"] == "historial":
                 df_filtrado["Linea"].astype(str).str.contains(busqueda, case=False, na=False)
             ]
 
-        # LIMITE DE SEGURIDAD: Solo procesar los 15 más recientes para mantener velocidad máxima
-        df_filtrado_top = df_filtrado.head(15)
+        # LÍMITE DE SEGURIDAD: Procesar los 50 más recientes
+        df_filtrado_top = df_filtrado.head(50)
 
         if not df_filtrado_top.empty:
             items_html = ""
