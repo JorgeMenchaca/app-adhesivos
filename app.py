@@ -27,15 +27,12 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS CORREGIDOS (SIN BOTÓN COLLAPSE QUE SE ROMPE)
+# 3. ESTILOS CSS CORREGIDOS
 st.markdown(
     """
     <style>
     #MainMenu, footer, header {display: none !important;}
     
-    /* ------------------------------------------------------------- */
-    /* FIX CRÍTICO: OCULTAR EL BOTÓN DE COLAPSAR Y RESTAURAR ICONOS */
-    /* ------------------------------------------------------------- */
     [data-testid="stSidebarCollapseButton"], 
     [data-testid="collapsedControl"] {
         display: none !important;
@@ -52,8 +49,8 @@ st.markdown(
     }
     
     .block-container {
-        max-width: 800px !important;
-        padding-top: 2rem !important;
+        max-width: 850px !important;
+        padding-top: 1.5rem !important;
         padding-bottom: 2rem !important;
         margin: 0 auto !important;
     }
@@ -70,7 +67,6 @@ st.markdown(
         color: #F8FAFC !important;
     }
     
-    /* BOTONES DEL PANEL IZQUIERDO */
     [data-testid="stSidebar"] div.stButton > button {
         width: 100% !important;
         background-color: #1E293B !important;
@@ -134,15 +130,16 @@ st.markdown(
         font-size: 16px !important;
     }
 
-    /* BOTONES PRINCIPALES GENERALES */
+    /* BOTONES PRINCIPALES Y DE ATENDER */
     div.stButton > button {
         width: 100% !important;
-        min-height: 44px !important;
+        min-height: 40px !important;
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
         border: none !important;
         font-weight: 700 !important;
-        border-radius: 10px !important;
+        font-size: 13px !important;
+        border-radius: 8px !important;
     }
 
     [data-testid="stWidgetLabel"] {
@@ -209,8 +206,7 @@ st.markdown(
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
         border-radius: 10px;
-        padding: 12px 14px;
-        margin-bottom: 8px;
+        padding: 10px 14px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
     .badge-estatus {
@@ -499,7 +495,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (MÓDULO COMPACTO Y CON BOTÓN A UN LADO)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -510,7 +506,7 @@ elif st.session_state["pantalla"] == "admin_panel":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en tiempo real (Refresco cada 60s) • Pendientes (30 días)</div>",
+        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco cada 60s) • Folios pendientes (30 días)</div>",
         unsafe_allow_html=True,
     )
 
@@ -528,34 +524,42 @@ elif st.session_state["pantalla"] == "admin_panel":
         df_pendientes = df_pendientes.sort_values(by="Fecha_dt", ascending=False)
 
         if not df_pendientes.empty:
-            for _, row in df_pendientes.iterrows():
-                f_id = str(row.get('ID_Folio', ''))
-                
-                with st.container():
-                    st.markdown(
-                        f"""
-                        <div class="historial-item-compact">
-                            <span class="badge-pendiente">{row.get('Estatus', 'NUEVO')}</span>
-                            <div style="font-size: 13px; font-weight: 700; color: #0F172A;">
-                                Folio #{f_id} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
+            # CAJA CON SCROLL INTERNO PARA NO OCUPAR ESPACIO DE PANTALLA
+            with st.container(height=420):
+                for _, row in df_pendientes.iterrows():
+                    f_id = str(row.get('ID_Folio', ''))
+                    
+                    # COLUMNAS PARALELAS: Tarjeta (82%) + Botón (18%) A UN LADO
+                    col_det, col_btn = st.columns([4, 1], vertical_alignment="center")
+                    
+                    with col_det:
+                        st.markdown(
+                            f"""
+                            <div class="historial-item-compact" style="margin-bottom:0px;">
+                                <span class="badge-pendiente">{row.get('Estatus', 'NUEVO')}</span>
+                                <div style="font-size: 13px; font-weight: 700; color: #0F172A;">
+                                    Folio #{f_id} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
+                                </div>
+                                <div style="font-size: 12px; color: #475569; margin-top: 2px;">
+                                    🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • Prioridad: <b style="color:#D97706;">{row.get('Prioridad', '')}</b>
+                                </div>
+                                <div style="font-size: 11px; color: #64748B; margin-top: 2px;">
+                                    Creado: {row.get('FechaCreacion', '')}
+                                </div>
                             </div>
-                            <div style="font-size: 12px; color: #475569; margin-top: 2px;">
-                                🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • Prioridad: <b>{row.get('Prioridad', '')}</b>
-                            </div>
-                            <div style="font-size: 11px; color: #64748B; margin-top: 2px;">
-                                Creado: {row.get('FechaCreacion', '')}
-                            </div>
-                        </div>
-                    """,
-                        unsafe_allow_html=True,
-                    )
-                    if st.button(f"✏️ Atender Folio #{f_id}", key=f"btn_{f_id}"):
-                        st.session_state["folio_atender"] = f_id
-                        st.session_state["pantalla"] = "admin_detalle"
-                        st.rerun()
-                    st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
+                        """,
+                            unsafe_allow_html=True,
+                        )
+                    
+                    with col_btn:
+                        if st.button("✏️ Atender", key=f"btn_{f_id}", use_container_width=True):
+                            st.session_state["folio_atender"] = f_id
+                            st.session_state["pantalla"] = "admin_detalle"
+                            st.rerun()
+
+                    st.markdown("<div style='margin-bottom: 6px;'></div>", unsafe_allow_html=True)
         else:
-            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir.")
+            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
     else:
         st.info("No hay registros en la base de datos.")
 
