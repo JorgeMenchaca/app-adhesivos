@@ -7,7 +7,7 @@ from streamlit_gsheets import GSheetsConnection
 # 1. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(
     page_title="Gestión de Folios",
-    page_icon="📦",
+    page_icon="🎫",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -16,17 +16,17 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS CON SOBREESCRITURA DEL CONTENEDOR PADRE FIT-CONTENT
+# 3. ESTILOS CSS (FONDO DE TICKETS Y CONTENEDOR COMPACTO CON SCROLL INTERNO)
 st.markdown(
     """
     <style>
     /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO MODERNO DE SISTEMA DE TICKETS Y FLUJO DIGITAL */
+    /* FONDO DE PATRÓN DE TICKETS / BOLETOS CON CAPA CLARA */
     .stApp {
-        background-image: linear-gradient(rgba(248, 250, 252, 0.88), rgba(248, 250, 252, 0.88)), 
-                          url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200') !important;
+        background-image: linear-gradient(rgba(248, 250, 252, 0.90), rgba(248, 250, 252, 0.90)), 
+                          url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1200') !important;
         background-size: cover !important;
         background-position: center !important;
         background-attachment: fixed !important;
@@ -34,13 +34,11 @@ st.markdown(
     
     .block-container {
         max-width: 500px !important;
-        padding-top: 2rem !important;
+        padding-top: 1.5rem !important;
         padding-bottom: 2rem !important;
     }
 
-    /* ------------------------------------------------------------- */
-    /* FIX CRÍTICO: DESTRUIR EL FIT-CONTENT DEL CONTENEDOR PADRE */
-    /* ------------------------------------------------------------- */
+    /* FIX DEL BOTÓN 100% ANCHO REAL */
     div[class*="st-key-FormSubmitter-"],
     div[data-testid="stElementContainer"]:has(div[data-testid="stFormSubmitButton"]) {
         width: 100% !important;
@@ -54,7 +52,6 @@ st.markdown(
         display: block !important;
     }
     
-    /* BOTÓN VERDE A 100% DE ANCHO REAL */
     div[data-testid="stFormSubmitButton"] > button,
     button[data-testid="stBaseButton-secondaryFormSubmit"] {
         width: 100% !important;
@@ -100,12 +97,10 @@ st.markdown(
         width: 100% !important;
     }
     
-    /* FORZAR COLORES OSCUROS EN TEXTOS */
     label, p, span, h1, h2, h3, .stMarkdown {
         font-family: 'Inter', system-ui, sans-serif !important;
     }
     
-    /* TARJETA BLANCA CENTRADA CON BORDES REDONDEADOS */
     [data-testid="stForm"] {
         background-color: #FFFFFF !important;
         border-radius: 20px !important;
@@ -114,7 +109,6 @@ st.markdown(
         padding: 24px !important;
     }
     
-    /* TARJETAS DE INFORMACIÓN DEL QR */
     .info-card {
         background-color: #FFFFFF;
         border-radius: 12px;
@@ -137,23 +131,40 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* TARJETA DE HISTORIAL DE TICKETS */
-    .historial-item {
+    /* ------------------------------------------------------------- */
+    /* CONTENEDOR DE HISTORIAL COMPACTO CON SCROLL INTERNO */
+    /* ------------------------------------------------------------- */
+    .historial-box {
+        max-height: 380px;
+        overflow-y: auto;
+        padding-right: 4px;
+        margin-bottom: 16px;
+    }
+    
+    /* Personalizar barra de scroll suave */
+    .historial-box::-webkit-scrollbar {
+        width: 6px;
+    }
+    .historial-box::-webkit-scrollbar-thumb {
+        background-color: #CBD5E1;
+        border-radius: 10px;
+    }
+
+    .historial-item-compact {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 14px 16px;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
     .badge-estatus {
         background-color: #DEF7EC;
         color: #03543F !important;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 12px;
-        float: right;
+        padding: 2px 6px;
+        border-radius: 10px;
     }
     </style>
 """,
@@ -205,7 +216,7 @@ if st.session_state["pantalla"] == "formulario":
         else "MEDIA"
     )
 
-    # ENCABEZADO Y SUBTÍTULO 100% VISIBLE
+    # ENCABEZADO
     st.markdown(
         "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Nuevo Folio</h2>",
         unsafe_allow_html=True,
@@ -301,16 +312,16 @@ if st.session_state["pantalla"] == "formulario":
 
 
 # ==============================================================================
-# PANTALLA 2: HISTORIAL
+# PANTALLA 2: HISTORIAL COMPACTO (Últimos 4 días con Scroll Interno)
 # ==============================================================================
 elif st.session_state["pantalla"] == "historial":
 
     st.markdown(
-        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Tickets Recientes</h2>",
+        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Folios Recientes</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 20px;'>Registros de los últimos 4 días</div>",
+        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 16px;'>Registros de los últimos 4 días</div>",
         unsafe_allow_html=True,
     )
 
@@ -329,33 +340,30 @@ elif st.session_state["pantalla"] == "historial":
         df_filtrado = df_filtrado.sort_values(by="Fecha_dt", ascending=False)
 
         if not df_filtrado.empty:
+            # Construir bloque HTML con scroll interno para evitar scroll de pantalla
+            items_html = ""
             for _, row in df_filtrado.iterrows():
-                st.markdown(
-                    f"""
-                    <div class="historial-item">
+                items_html += f"""
+                <div class="historial-item-compact">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: #0F172A; font-size: 13px;">
+                            #{row.get('ID_Folio', '')} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
+                        </span>
                         <span class="badge-estatus">{row.get('Estatus', 'NUEVO')}</span>
-                        <div style="font-size: 12px; color: #64748B; font-weight: 600;">
-                            Ticket #{row.get('ID_Folio', '')} • {row.get('FechaCreacion', '')}
-                        </div>
-                        <div style="font-size: 15px; font-weight: 700; color: #0F172A; margin-top: 4px;">
-                            {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
-                        </div>
-                        <div style="font-size: 13px; color: #334155; margin-top: 2px;">
-                            🧪 <b>{row.get('Adhesivo', '')}</b> — 📦 {row.get('Botes', '')} Bote(s)
-                        </div>
                     </div>
-                """,
-                    unsafe_allow_html=True,
-                )
+                    <div style="font-size: 12px; color: #475569; margin-top: 4px;">
+                        🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • <span style="color:#64748B;">{row.get('FechaCreacion', '')}</span>
+                    </div>
+                </div>
+                """
+            
+            # Renderizar en la caja con scroll
+            st.markdown(f'<div class="historial-box">{items_html}</div>', unsafe_allow_html=True)
         else:
-            st.info("No hay tickets registrados en los últimos 4 días.")
+            st.info("No hay folios registrados en los últimos 4 días.")
     else:
         st.info("No hay registros en la base de datos.")
 
-    st.markdown(
-        "<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True
-    )
-
-    if st.button("➕ CREAR OTRO TICKET"):
+    if st.button("➕ CREAR OTRO FOLIO"):
         st.session_state["pantalla"] = "formulario"
         st.rerun()
