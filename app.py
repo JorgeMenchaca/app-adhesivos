@@ -27,7 +27,7 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS (CON SEPARACIÓN CLARA ENTRE TARJETAS)
+# 3. ESTILOS CSS CON FORZADO DE TARJETAS BLANCAS Y BORDES DEFINIDOS
 st.markdown(
     """
     <style>
@@ -197,43 +197,39 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* SCROLLBAR GRIS OSCURO DE ALTO CONTRASTE (#334155) */
-    .historial-box {
+    /* SCROLLBAR GRIS OSCURO (#334155) */
+    [data-testid="stElementContainer"] .historial-box,
+    div[data-testid="stVerticalBlock"] > div {
         max-height: 420px;
-        overflow-y: auto;
-        padding-right: 10px;
-        margin-bottom: 16px;
     }
     
-    .historial-box::-webkit-scrollbar {
+    ::-webkit-scrollbar {
         width: 10px !important;
     }
-    .historial-box::-webkit-scrollbar-track {
+    ::-webkit-scrollbar-track {
         background: #E2E8F0 !important;
         border-radius: 10px !important;
     }
-    .historial-box::-webkit-scrollbar-thumb {
+    ::-webkit-scrollbar-thumb {
         background-color: #334155 !important;
         border-radius: 10px !important;
         border: 2px solid #E2E8F0 !important;
     }
-    .historial-box::-webkit-scrollbar-thumb:hover {
+    ::-webkit-scrollbar-thumb:hover {
         background-color: #0F172A !important;
     }
 
     /* ------------------------------------------------------------- */
-    /* SEPARACIÓN CLARA ENTRE TARJETAS DE SURTIDO (12PX MARGIN-BOTTOM) */
+    /* FORZAR TARJETAS BLANCAS CON BORDE Y SEPARACIÓN EN SURTIDO */
     /* ------------------------------------------------------------- */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        margin-bottom: 12px !important;
-    }
-
-    div[data-testid="stVerticalBlockBorderWrapper"] > div {
+    div[data-testid="stHorizontalBlock"] {
         background-color: #FFFFFF !important;
-        border: 1px solid #E2E8F0 !important;
+        border: 1.5px solid #CBD5E1 !important;
         border-radius: 12px !important;
         padding: 10px 14px !important;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+        margin-bottom: 12px !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03) !important;
+        align-items: center !important;
     }
 
     .historial-item-compact {
@@ -531,7 +527,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (CON SEPARACIÓN DE TARJETAS DE 12PX)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TARJETAS BLANCAS CON BORDES GARANTIZADAS)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -540,7 +536,7 @@ elif st.session_state["pantalla"] == "admin_panel":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco en segundo plano cada 60s) • Pendientes (30 días)</div>",
+        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco silencioso cada 60s) • Pendientes (30 días)</div>",
         unsafe_allow_html=True,
     )
 
@@ -564,29 +560,28 @@ elif st.session_state["pantalla"] == "admin_panel":
                     for _, row in df_pendientes.iterrows():
                         f_id = str(row.get('ID_Folio', ''))
                         
-                        # CADA TARJETA TIENE SU PROPIO CONTAINER ENCUADRADO Y SEPARADO
-                        with st.container(border=True):
-                            col_info, col_btn = st.columns([80, 20], vertical_alignment="center")
-                            
-                            with col_info:
-                                st.markdown(
-                                    f"""
-                                    <span class="badge-pendiente">{row.get('Estatus', 'NUEVO')}</span>
-                                    <div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">
-                                        #{f_id} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
-                                    </div>
-                                    <div style="font-size: 11px; color: #475569; margin-top: 2px;">
-                                        🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • Prioridad: <b style="color:#D97706;">{row.get('Prioridad', '')}</b> • <span style="color:#64748B;">{row.get('FechaCreacion', '')}</span>
-                                    </div>
-                                """,
-                                    unsafe_allow_html=True,
-                                )
-                            
-                            with col_btn:
-                                if st.button("✏️ Atender", key=f"atender_btn_{f_id}", use_container_width=True):
-                                    st.session_state["folio_atender"] = f_id
-                                    st.session_state["pantalla"] = "admin_detalle"
-                                    st.rerun()
+                        # LAS COLUMNAS SE ESTILIZAN AUTOMÁTICAMENTE COMO TARJETAS BLANCAS CON BORDE CON CSS
+                        col_info, col_btn = st.columns([82, 18], vertical_alignment="center")
+                        
+                        with col_info:
+                            st.markdown(
+                                f"""
+                                <span class="badge-pendiente">{row.get('Estatus', 'NUEVO')}</span>
+                                <div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">
+                                    #{f_id} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
+                                </div>
+                                <div style="font-size: 11px; color: #475569; margin-top: 2px;">
+                                    🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • Prioridad: <b style="color:#D97706;">{row.get('Prioridad', '')}</b> • <span style="color:#64748B;">{row.get('FechaCreacion', '')}</span>
+                                </div>
+                            """,
+                                unsafe_allow_html=True,
+                            )
+                        
+                        with col_btn:
+                            if st.button("✏️ Atender", key=f"atender_btn_{f_id}", use_container_width=True):
+                                st.session_state["folio_atender"] = f_id
+                                st.session_state["pantalla"] = "admin_detalle"
+                                st.rerun()
 
             else:
                 st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
