@@ -16,14 +16,12 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS (FONDO PASTEL + VISTA COMPACTA SIN ERRORES)
+# 3. ESTILOS CSS
 st.markdown(
     """
     <style>
-    /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO DE GRADIENTE PASTEL SUAVE */
     .stApp {
         background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
                     radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
@@ -39,7 +37,6 @@ st.markdown(
         padding-bottom: 2rem !important;
     }
 
-    /* FIX DEL BOTÓN VERDE A 100% DE ANCHO REAL */
     div[class*="st-key-FormSubmitter-"],
     div[data-testid="stElementContainer"]:has(div[data-testid="stFormSubmitButton"]) {
         width: 100% !important;
@@ -82,7 +79,6 @@ st.markdown(
         font-size: 16px !important;
     }
     
-    /* BOTÓN AZUL SECUNDARIO (CREAR OTRO FOLIO) */
     div.stButton > button {
         width: 100% !important;
         min-height: 48px !important;
@@ -93,7 +89,6 @@ st.markdown(
         border-radius: 10px !important;
     }
     
-    /* CENTRAR LOS TÍTULOS DE LOS DROPDOWNS */
     [data-testid="stWidgetLabel"] {
         display: flex !important;
         justify-content: center !important;
@@ -143,9 +138,8 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* CONTENEDOR DE HISTORIAL COMPACTO CON SCROLL INTERNO */
     .historial-box {
-        max-height: 380px;
+        max-height: 400px;
         overflow-y: auto;
         padding-right: 4px;
         margin-bottom: 16px;
@@ -321,7 +315,7 @@ if st.session_state["pantalla"] == "formulario":
 
 
 # ==============================================================================
-# PANTALLA 2: HISTORIAL COMPACTO (Renderizado limpio sin bloques de código)
+# PANTALLA 2: HISTORIAL OPTIMIZADO (Buscador + Top 15 Más Recientes)
 # ==============================================================================
 elif st.session_state["pantalla"] == "historial":
 
@@ -330,7 +324,7 @@ elif st.session_state["pantalla"] == "historial":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 16px;'>Registros de los últimos 4 días</div>",
+        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 12px;'>Mostrando los 15 más recientes</div>",
         unsafe_allow_html=True,
     )
 
@@ -344,14 +338,26 @@ elif st.session_state["pantalla"] == "historial":
         df_folios["Fecha_dt"] = pd.to_datetime(
             df_folios["FechaCreacion"], errors="coerce"
         )
+        
+        # Filtro de los últimos 4 días y ordenamiento del más nuevo al más viejo
         hace_4_dias = pd.Timestamp.now() - pd.Timedelta(days=4)
         df_filtrado = df_folios[df_folios["Fecha_dt"] >= hace_4_dias].copy()
         df_filtrado = df_filtrado.sort_values(by="Fecha_dt", ascending=False)
 
-        if not df_filtrado.empty:
-            # Construir HTML en una sola línea continua por elemento para evitar que Streamlit cree código negro
+        # BUSCADOR EN TIEMPO REAL
+        busqueda = st.text_input("🔍 Buscar por ID o Línea...", "", placeholder="Ej: 46e9df62 o 780B")
+        if busqueda:
+            df_filtrado = df_filtrado[
+                df_filtrado["ID_Folio"].astype(str).str.contains(busqueda, case=False, na=False) |
+                df_filtrado["Linea"].astype(str).str.contains(busqueda, case=False, na=False)
+            ]
+
+        # LIMITE DE SEGURIDAD: Solo procesar los 15 más recientes para mantener velocidad máxima
+        df_filtrado_top = df_filtrado.head(15)
+
+        if not df_filtrado_top.empty:
             items_html = ""
-            for _, row in df_filtrado.iterrows():
+            for _, row in df_filtrado_top.iterrows():
                 id_f = str(row.get('ID_Folio', ''))
                 lin = str(row.get('Linea', ''))
                 cab = str(row.get('Cabina', ''))
@@ -362,10 +368,9 @@ elif st.session_state["pantalla"] == "historial":
 
                 items_html += f'<div class="historial-item-compact"><div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-weight: 700; color: #0F172A; font-size: 13px;">#{id_f} — {lin} (Cabina {cab})</span><span class="badge-estatus">{est}</span></div><div style="font-size: 12px; color: #475569; margin-top: 4px;">🧪 <b>{adh}</b> ({bot} Bote) • <span style="color:#64748B;">{fec}</span></div></div>'
             
-            # Renderizar dentro de la caja con scroll
             st.markdown(f'<div class="historial-box">{items_html}</div>', unsafe_allow_html=True)
         else:
-            st.info("No hay folios registrados en los últimos 4 días.")
+            st.info("No se encontraron folios recientes que coincidan.")
     else:
         st.info("No hay registros en la base de datos.")
 
