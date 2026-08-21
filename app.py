@@ -27,7 +27,7 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS CORREGIDOS
+# 3. ESTILOS CSS CON SIMETRÍA EXACTA PARA PANEL DE SURTIDO
 st.markdown(
     """
     <style>
@@ -55,7 +55,7 @@ st.markdown(
         margin: 0 auto !important;
     }
 
-    /* ESTILO DEL PANEL IZQUIERDO (SIDEBAR DARK DASHBOARD) */
+    /* PANEL IZQUIERDO DASHBOARD */
     [data-testid="stSidebar"] {
         background-color: #0F172A !important;
         border-right: 1px solid #1E293B !important;
@@ -130,7 +130,7 @@ st.markdown(
         font-size: 16px !important;
     }
 
-    /* BOTONES PRINCIPALES Y DE ATENDER */
+    /* BOTONES GENERALES */
     div.stButton > button {
         width: 100% !important;
         min-height: 40px !important;
@@ -209,6 +209,31 @@ st.markdown(
         padding: 10px 14px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
+
+    /* ------------------------------------------------------------- */
+    /* SIMETRÍA EXACTA PARA TARJETA Y BOTÓN EN PANEL DE SURTIDO */
+    /* ------------------------------------------------------------- */
+    .surtido-card-compact {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        padding: 8px 12px;
+        height: 62px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .col-surtido-btn div.stButton > button {
+        height: 62px !important;
+        min-height: 62px !important;
+        margin: 0 !important;
+        border-radius: 10px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+    }
+
     .badge-estatus {
         background-color: #DEF7EC;
         color: #03543F !important;
@@ -387,7 +412,7 @@ if st.session_state["pantalla"] == "formulario":
                         "NivelActual": "",
                         "DescripcionResolucion": "",
                         "Prioridad": prioridad_val,
-                        "Escalacion": "PRIMERA",
+                        "Escalacion": "",  # ESCALACION VACÍA AL GUARDAR
                         "UsuarioCreacion": "operador_qr@empresa.com",
                         "UsuarioCerrado": "",
                         "minutosTranscurridos": 0,
@@ -495,7 +520,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (MÓDULO COMPACTO Y CON BOTÓN A UN LADO)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (MÓDULO SIMÉTRICO Y COMPACTO)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -506,7 +531,7 @@ elif st.session_state["pantalla"] == "admin_panel":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco cada 60s) • Folios pendientes (30 días)</div>",
+        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco cada 60s) • Pendientes (30 días)</div>",
         unsafe_allow_html=True,
     )
 
@@ -524,27 +549,25 @@ elif st.session_state["pantalla"] == "admin_panel":
         df_pendientes = df_pendientes.sort_values(by="Fecha_dt", ascending=False)
 
         if not df_pendientes.empty:
-            # CAJA CON SCROLL INTERNO PARA NO OCUPAR ESPACIO DE PANTALLA
             with st.container(height=420):
                 for _, row in df_pendientes.iterrows():
                     f_id = str(row.get('ID_Folio', ''))
                     
-                    # COLUMNAS PARALELAS: Tarjeta (82%) + Botón (18%) A UN LADO
-                    col_det, col_btn = st.columns([4, 1], vertical_alignment="center")
+                    # COLUMNAS CON ALINEACIÓN VERTICAL CENTRADA EXACTA
+                    col_det, col_btn = st.columns([81, 19], vertical_alignment="center")
                     
                     with col_det:
                         st.markdown(
                             f"""
-                            <div class="historial-item-compact" style="margin-bottom:0px;">
-                                <span class="badge-pendiente">{row.get('Estatus', 'NUEVO')}</span>
-                                <div style="font-size: 13px; font-weight: 700; color: #0F172A;">
-                                    Folio #{f_id} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
+                            <div class="surtido-card-compact">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 13px; font-weight: 700; color: #0F172A;">
+                                        #{f_id} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
+                                    </span>
+                                    <span class="badge-pendiente">{row.get('Estatus', 'NUEVO')}</span>
                                 </div>
-                                <div style="font-size: 12px; color: #475569; margin-top: 2px;">
-                                    🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • Prioridad: <b style="color:#D97706;">{row.get('Prioridad', '')}</b>
-                                </div>
-                                <div style="font-size: 11px; color: #64748B; margin-top: 2px;">
-                                    Creado: {row.get('FechaCreacion', '')}
+                                <div style="font-size: 11px; color: #475569; margin-top: 2px;">
+                                    🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • Prioridad: <b style="color:#D97706;">{row.get('Prioridad', '')}</b> • {row.get('FechaCreacion', '')}
                                 </div>
                             </div>
                         """,
@@ -552,10 +575,12 @@ elif st.session_state["pantalla"] == "admin_panel":
                         )
                     
                     with col_btn:
+                        st.markdown('<div class="col-surtido-btn">', unsafe_allow_html=True)
                         if st.button("✏️ Atender", key=f"btn_{f_id}", use_container_width=True):
                             st.session_state["folio_atender"] = f_id
                             st.session_state["pantalla"] = "admin_detalle"
                             st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
 
                     st.markdown("<div style='margin-bottom: 6px;'></div>", unsafe_allow_html=True)
         else:
