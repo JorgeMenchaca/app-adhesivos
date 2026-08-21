@@ -6,8 +6,8 @@ from streamlit_gsheets import GSheetsConnection
 
 # 1. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(
-    page_title="Sistema de Folios & Tickets",
-    page_icon="🎫",
+    page_title="Gestión de Folios",
+    page_icon="📦",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -16,19 +16,20 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS (TICKETING SYSTEM LOOK & FEEL)
+# 3. ESTILOS CSS (FONDO PASTEL + BOTÓN FIT-CONTENT CENTRADO)
 st.markdown(
     """
     <style>
     /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO DE SISTEMA DE TICKETS / FLUJO DE DATOS Y RED DIGITAL */
+    /* FONDO DE GRADIENTE PASTEL SUAVE (ORIGINAL) */
     .stApp {
-        background-image: linear-gradient(rgba(248, 250, 252, 0.91), rgba(248, 250, 252, 0.91)), 
-                          url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200') !important;
-        background-size: cover !important;
-        background-position: center !important;
+        background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(243, 232, 255, 0.7) 0px, transparent 50%),
+                    radial-gradient(at 0% 100%, rgba(224, 242, 254, 0.7) 0px, transparent 50%),
+                    #F8FAFC !important;
         background-attachment: fixed !important;
     }
     
@@ -59,21 +60,23 @@ st.markdown(
         font-family: 'Inter', system-ui, sans-serif !important;
     }
 
-    /* CONTENEDOR DEL BOTÓN A ANCHO COMPLETO */
+    /* CONTENEDOR DEL BOTÓN CENTRADO */
     div[data-testid="stFormSubmitButton"] {
         width: 100% !important;
         display: flex !important;
         justify-content: center !important;
+        align-items: center !important;
     }
     
-    /* BOTÓN VERDE ESMERALDA TIPO TICKET SYSTEM */
+    /* BOTÓN VERDE FIT-CONTENT */
     div[data-testid="stFormSubmitButton"] > button {
-        width: 100% !important;
+        width: fit-content !important;
+        min-width: 200px !important;
         min-height: 48px !important;
         background-color: #10B981 !important;
         color: #FFFFFF !important;
         border: none !important;
-        padding: 12px 24px !important;
+        padding: 12px 32px !important;
         font-size: 16px !important;
         font-weight: 800 !important;
         border-radius: 10px !important;
@@ -81,7 +84,7 @@ st.markdown(
         transition: all 0.2s ease !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-top: 10px !important;
+        margin: 10px auto 0 auto !important;
     }
     
     div[data-testid="stFormSubmitButton"] > button:hover {
@@ -126,7 +129,7 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* TARJETA DE HISTORIAL DE TICKETS */
+    /* TARJETA DE HISTORIAL */
     .historial-item {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -171,7 +174,7 @@ if st.session_state["pantalla"] == "formulario":
     cabina_qr = query_params.get("cabina", "1")
     adhesivo_qr = query_params.get("adhesivo", None)
 
-    # REGLA ESPECIAL PARA "PRIMER"
+    # REGLA ESPECIAL PARA "PRIMER":
     if adhesivo_qr and adhesivo_qr.strip().upper() == "PRIMER":
         adhesivos_disponibles = ["PRIMER"]
         index_adhesivo = 0
@@ -201,7 +204,7 @@ if st.session_state["pantalla"] == "formulario":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Sistema de Solicitud de Material vía QR</p>",
+        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Registro de material vía QR</p>",
         unsafe_allow_html=True,
     )
 
@@ -296,11 +299,11 @@ if st.session_state["pantalla"] == "formulario":
 elif st.session_state["pantalla"] == "historial":
 
     st.markdown(
-        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Tickets Recientes</h2>",
+        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Folios Recientes</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Folios registrados en los últimos 4 días</p>",
+        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Registros de los últimos 4 días</p>",
         unsafe_allow_html=True,
     )
 
@@ -321,7 +324,7 @@ elif st.session_state["pantalla"] == "historial":
                     <div class="historial-item">
                         <span class="badge-estatus">{row.get('Estatus', 'NUEVO')}</span>
                         <div style="font-size: 12px; color: #64748B; font-weight: 600;">
-                            Ticket #{row.get('ID_Folio', '')} • {row.get('FechaCreacion', '')}
+                            Folio #{row.get('ID_Folio', '')} • {row.get('FechaCreacion', '')}
                         </div>
                         <div style="font-size: 15px; font-weight: 700; color: #0F172A; margin-top: 4px;">
                             {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
@@ -334,7 +337,7 @@ elif st.session_state["pantalla"] == "historial":
                     unsafe_allow_html=True,
                 )
         else:
-            st.info("No hay tickets registrados en los últimos 4 días.")
+            st.info("No hay folios registrados en los últimos 4 días.")
     else:
         st.info("No hay registros en la base de datos.")
 
@@ -342,6 +345,6 @@ elif st.session_state["pantalla"] == "historial":
         "<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True
     )
 
-    if st.button("➕ CREAR OTRO TICKET"):
+    if st.button("➕ CREAR OTRO FOLIO"):
         st.session_state["pantalla"] = "formulario"
         st.rerun()
