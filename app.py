@@ -27,7 +27,7 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS (MANTENIENDO 100% TUS DISEÑOS VISUALES)
+# 3. ESTILOS CSS (RECUADRO TARJETA UNIFICADO)
 st.markdown(
     """
     <style>
@@ -143,7 +143,7 @@ st.markdown(
     /* BOTONES GENERALES DE ATENDER */
     div.stButton > button {
         width: 100% !important;
-        min-height: 42px !important;
+        min-height: 38px !important;
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
         border: none !important;
@@ -197,7 +197,7 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* SCROLLBAR GRIS OSCURO DE ALTO CONTRASTE (#334155) */
+    /* SCROLLBAR GRIS OSCURO (#334155) */
     .historial-box {
         max-height: 420px;
         overflow-y: auto;
@@ -221,20 +221,22 @@ st.markdown(
         background-color: #0F172A !important;
     }
 
+    /* ESTILO DE LA TARJETA ENCUADRADA QUE CONTIENE TEXTO Y BOTÓN */
+    div[data-testid="stVerticalBlockBorderWrapper"] > div {
+        background-color: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 12px !important;
+        padding: 10px 14px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+        margin-bottom: 8px !important;
+    }
+
     .historial-item-compact {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
         border-radius: 10px;
         padding: 10px 14px;
         margin-bottom: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    }
-
-    .card-surtido-text {
-        background-color: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 10px;
-        padding: 10px 14px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
@@ -524,7 +526,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TRANSICIÓN NATIVA SIN RECARGA DE PÁGINA)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TARJETA UNIFICADA EN EL MISMO DIV)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -533,7 +535,7 @@ elif st.session_state["pantalla"] == "admin_panel":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco silencioso cada 60s) • Pendientes (30 días)</div>",
+        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco en segundo plano cada 60s) • Pendientes (30 días)</div>",
         unsafe_allow_html=True,
     )
 
@@ -556,40 +558,31 @@ elif st.session_state["pantalla"] == "admin_panel":
                 with st.container(height=420):
                     for _, row in df_pendientes.iterrows():
                         f_id = str(row.get('ID_Folio', ''))
-                        lin = str(row.get('Linea', ''))
-                        cab = str(row.get('Cabina', ''))
-                        est = str(row.get('Estatus', 'NUEVO'))
-                        adh = str(row.get('Adhesivo', ''))
-                        bot = str(row.get('Botes', ''))
-                        prio = str(row.get('Prioridad', ''))
-                        fec = str(row.get('FechaCreacion', ''))
-
-                        # DISPOSICIÓN EN COLUMNAS CON BOTÓN NATIVO EN MEMORIA
-                        c_info, c_btn = st.columns([82, 18], vertical_alignment="center")
-
-                        with c_info:
-                            st.markdown(
-                                f"""
-                                <div class="card-surtido-text">
-                                    <span class="badge-pendiente">{est}</span>
+                        
+                        # CONTENEDOR ENCUADRADO QUE ENCIERRA TEXTO Y BOTÓN JUNTOS
+                        with st.container(border=True):
+                            col_info, col_btn = st.columns([80, 20], vertical_alignment="center")
+                            
+                            with col_info:
+                                st.markdown(
+                                    f"""
+                                    <span class="badge-pendiente">{row.get('Estatus', 'NUEVO')}</span>
                                     <div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">
-                                        #{f_id} — {lin} (Cabina {cab})
+                                        #{f_id} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
                                     </div>
                                     <div style="font-size: 11px; color: #475569; margin-top: 2px;">
-                                        🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span>
+                                        🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • Prioridad: <b style="color:#D97706;">{row.get('Prioridad', '')}</b> • <span style="color:#64748B;">{row.get('FechaCreacion', '')}</span>
                                     </div>
-                                </div>
-                            """,
-                                unsafe_allow_html=True,
-                            )
+                                """,
+                                    unsafe_allow_html=True,
+                                )
+                            
+                            with col_btn:
+                                if st.button("✏️ Atender", key=f"atender_btn_{f_id}", use_container_width=True):
+                                    st.session_state["folio_atender"] = f_id
+                                    st.session_state["pantalla"] = "admin_detalle"
+                                    st.rerun()
 
-                        with c_btn:
-                            if st.button("✏️ Atender", key=f"atender_btn_{f_id}", use_container_width=True):
-                                st.session_state["folio_atender"] = f_id
-                                st.session_state["pantalla"] = "admin_detalle"
-                                st.rerun()
-
-                        st.markdown("<div style='margin-bottom: 6px;'></div>", unsafe_allow_html=True)
             else:
                 st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
         else:
