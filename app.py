@@ -7,7 +7,7 @@ from streamlit_gsheets import GSheetsConnection
 # CLAVE DE ACCESO ADMINISTRADOR
 CLAVE_ADMIN = "1234"
 
-# 1. CONFIGURACIÓN DE PÁGINA (AUTO: Cerrado en móvil, Abierto en PC)
+# 1. CONFIGURACIÓN DE PÁGINA (Auto: cerrado en celular, abierto en PC)
 st.set_page_config(
     page_title="Dashboard | Gestión de Folios",
     page_icon="📦",
@@ -42,16 +42,17 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS RESPONSIVOS (DIFERENCIADO PC Y CELULAR)
+# 3. ESTILOS CSS RESPONSIVOS (MÓVIL MUESTRA EL BOTÓN DE MENÚ)
 st.markdown(
     """
     <style>
-    #MainMenu, footer, header {display: none !important;}
+    #MainMenu, footer {display: none !important;}
     
     /* ------------------------------------------------------------- */
-    /* COMPUTADORA (MIN-WIDTH: 768PX): FIJO A LA IZQUIERDA */
+    /* COMPUTADORA (WIDTH >= 768PX): MENÚ FIJO A LA IZQUIERDA */
     /* ------------------------------------------------------------- */
     @media (min-width: 768px) {
+        header,
         [data-testid="stSidebarCollapseButton"], 
         [data-testid="collapsedControl"] {
             display: none !important;
@@ -66,19 +67,32 @@ st.markdown(
     }
 
     /* ------------------------------------------------------------- */
-    /* CELULAR (MAX-WIDTH: 767PX): MOSTRAR BOTÓN DE CERRAR 'X' */
+    /* CELULAR (WIDTH <= 767PX): BOTÓN FLOTANTE VISIBLE EN ESQUINA */
     /* ------------------------------------------------------------- */
     @media (max-width: 767px) {
-        [data-testid="stSidebarCollapseButton"], 
+        header {
+            display: block !important;
+            background: transparent !important;
+        }
+        
         [data-testid="collapsedControl"] {
             display: flex !important;
             visibility: visible !important;
+            position: fixed !important;
+            top: 12px !important;
+            left: 12px !important;
             z-index: 999999 !important;
+            background-color: #0F172A !important;
+            border-radius: 10px !important;
+            padding: 4px !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
         }
-        [data-testid="stSidebarCollapseButton"] button {
+        
+        [data-testid="collapsedControl"] button,
+        [data-testid="collapsedControl"] span,
+        [data-testid="collapsedControl"] svg {
             color: #FFFFFF !important;
-            background-color: #1E293B !important;
-            border-radius: 8px !important;
+            fill: #FFFFFF !important;
         }
     }
     
@@ -265,7 +279,7 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
     }
 
-    /* BOTÓN ATENDER DENTRO DE LA TARJETA */
+    /* BOTÓN ATENDER DENTRO DE LA TARJETA EN PANEL DE SURTIDO */
     .btn-atender-inside {
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
@@ -311,7 +325,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 
 # ==============================================================================
-# PANEL IZQUIERDO DE NAVEGACIÓN (SIDEBAR DASHBOARD FIJO EN PC)
+# PANEL IZQUIERDO DE NAVEGACIÓN (SIDEBAR DASHBOARD)
 # ==============================================================================
 with st.sidebar:
     st.markdown(
@@ -576,7 +590,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TARJETAS SÓLIDAS EN BLANCO)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
