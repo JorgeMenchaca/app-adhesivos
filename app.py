@@ -16,12 +16,14 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS
+# 3. ESTILOS CSS (BOTÓN 100% ANCHO Y SUBTÍTULO VISIBLE)
 st.markdown(
     """
     <style>
+    /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
+    /* FONDO DE GRADIENTE PASTEL SUAVE */
     .stApp {
         background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
                     radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
@@ -37,6 +39,7 @@ st.markdown(
         padding-bottom: 2rem !important;
     }
     
+    /* CENTRAR LOS TÍTULOS DE LOS DROPDOWNS */
     [data-testid="stWidgetLabel"] {
         display: flex !important;
         justify-content: center !important;
@@ -52,25 +55,25 @@ st.markdown(
         width: 100% !important;
     }
     
+    /* FORZAR COLORES OSCUROS EN TEXTOS GENERALES */
     label, p, span, h1, h2, h3, .stMarkdown {
         font-family: 'Inter', system-ui, sans-serif !important;
     }
 
+    /* CONTENEDOR DEL BOTÓN A ANCHO COMPLETO (100%) */
     div[data-testid="stFormSubmitButton"] {
         width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
+        display: block !important;
     }
     
+    /* BOTÓN VERDE EXPANDIDO AL 100% DEL LARGO DEL DROPDOWN */
     div[data-testid="stFormSubmitButton"] > button {
-        width: fit-content !important;
-        min-width: 200px !important;
+        width: 100% !important;
         min-height: 48px !important;
         background-color: #10B981 !important;
         color: #FFFFFF !important;
         border: none !important;
-        padding: 12px 32px !important;
+        padding: 12px 24px !important;
         font-size: 16px !important;
         font-weight: 800 !important;
         border-radius: 10px !important;
@@ -78,7 +81,7 @@ st.markdown(
         transition: all 0.2s ease !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin: 10px auto 0 auto !important;
+        margin-top: 10px !important;
     }
     
     div[data-testid="stFormSubmitButton"] > button:hover {
@@ -89,8 +92,10 @@ st.markdown(
     div[data-testid="stFormSubmitButton"] > button p {
         color: #FFFFFF !important;
         font-weight: 800 !important;
+        font-size: 16px !important;
     }
     
+    /* TARJETA BLANCA CENTRADA CON BORDES REDONDEADOS */
     [data-testid="stForm"] {
         background-color: #FFFFFF !important;
         border-radius: 20px !important;
@@ -99,6 +104,7 @@ st.markdown(
         padding: 24px !important;
     }
     
+    /* TARJETAS DE INFORMACIÓN DEL QR */
     .info-card {
         background-color: #FFFFFF;
         border-radius: 12px;
@@ -121,6 +127,7 @@ st.markdown(
         font-weight: 700;
     }
 
+    /* TARJETA DE HISTORIAL */
     .historial-item {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -152,7 +159,6 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 # ==============================================================================
 if st.session_state["pantalla"] == "formulario":
 
-    # Cargar datos con TTL de 5 segundos para evitar saturación de la API de Google
     try:
         df_folios = conn.read(worksheet="FOLIOS", ttl=5)
         df_adhesivos = conn.read(worksheet="ADHESIVOS", ttl=5)
@@ -182,6 +188,7 @@ if st.session_state["pantalla"] == "formulario":
         if adhesivo_qr and adhesivo_qr in adhesivos_disponibles:
             index_adhesivo = adhesivos_disponibles.index(adhesivo_qr)
 
+    # Buscar Prioridad en la pestaña PRIORIDAD
     match_prioridad = df_prioridad[df_prioridad["LINEA"] == linea_qr]
     prioridad_val = (
         match_prioridad["PRIORIDAD"].values[0]
@@ -189,13 +196,13 @@ if st.session_state["pantalla"] == "formulario":
         else "MEDIA"
     )
 
-    # ENCABEZADO
+    # ENCABEZADO CON SUBTÍTULO CORREGIDO Y 100% VISIBLE
     st.markdown(
         "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Nuevo Folio</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Registro de material vía QR</p>",
+        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 20px;'>Registro de material vía QR</div>",
         unsafe_allow_html=True,
     )
 
@@ -294,7 +301,7 @@ elif st.session_state["pantalla"] == "historial":
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='text-align: center; color: #64748B !important; font-size: 13px; margin-bottom: 20px;'>Registros de los últimos 4 días</p>",
+        "<div style='text-align: center; color: #334155; font-size: 14px; font-weight: 600; margin-bottom: 20px;'>Registros de los últimos 4 días</div>",
         unsafe_allow_html=True,
     )
 
