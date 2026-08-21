@@ -7,7 +7,7 @@ from streamlit_gsheets import GSheetsConnection
 # 1. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(
     page_title="Gestión de Folios",
-    page_icon="🎫",
+    page_icon="📦",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -16,19 +16,20 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS (FONDO DE TICKETS Y CONTENEDOR COMPACTO CON SCROLL INTERNO)
+# 3. ESTILOS CSS (FONDO PASTEL + VISTA COMPACTA SIN ERRORES)
 st.markdown(
     """
     <style>
     /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO DE PATRÓN DE TICKETS / BOLETOS CON CAPA CLARA */
+    /* FONDO DE GRADIENTE PASTEL SUAVE */
     .stApp {
-        background-image: linear-gradient(rgba(248, 250, 252, 0.90), rgba(248, 250, 252, 0.90)), 
-                          url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1200') !important;
-        background-size: cover !important;
-        background-position: center !important;
+        background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(243, 232, 255, 0.7) 0px, transparent 50%),
+                    radial-gradient(at 0% 100%, rgba(224, 242, 254, 0.7) 0px, transparent 50%),
+                    #F8FAFC !important;
         background-attachment: fixed !important;
     }
     
@@ -38,7 +39,7 @@ st.markdown(
         padding-bottom: 2rem !important;
     }
 
-    /* FIX DEL BOTÓN 100% ANCHO REAL */
+    /* FIX DEL BOTÓN VERDE A 100% DE ANCHO REAL */
     div[class*="st-key-FormSubmitter-"],
     div[data-testid="stElementContainer"]:has(div[data-testid="stFormSubmitButton"]) {
         width: 100% !important;
@@ -79,6 +80,17 @@ st.markdown(
         color: #FFFFFF !important;
         font-weight: 800 !important;
         font-size: 16px !important;
+    }
+    
+    /* BOTÓN AZUL SECUNDARIO (CREAR OTRO FOLIO) */
+    div.stButton > button {
+        width: 100% !important;
+        min-height: 48px !important;
+        background-color: #0284C7 !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
     }
     
     /* CENTRAR LOS TÍTULOS DE LOS DROPDOWNS */
@@ -131,9 +143,7 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* ------------------------------------------------------------- */
     /* CONTENEDOR DE HISTORIAL COMPACTO CON SCROLL INTERNO */
-    /* ------------------------------------------------------------- */
     .historial-box {
         max-height: 380px;
         overflow-y: auto;
@@ -141,7 +151,6 @@ st.markdown(
         margin-bottom: 16px;
     }
     
-    /* Personalizar barra de scroll suave */
     .historial-box::-webkit-scrollbar {
         width: 6px;
     }
@@ -154,7 +163,7 @@ st.markdown(
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
         border-radius: 10px;
-        padding: 10px 14px;
+        padding: 12px 14px;
         margin-bottom: 8px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
@@ -163,7 +172,7 @@ st.markdown(
         color: #03543F !important;
         font-size: 10px;
         font-weight: 700;
-        padding: 2px 6px;
+        padding: 2px 8px;
         border-radius: 10px;
     }
     </style>
@@ -312,7 +321,7 @@ if st.session_state["pantalla"] == "formulario":
 
 
 # ==============================================================================
-# PANTALLA 2: HISTORIAL COMPACTO (Últimos 4 días con Scroll Interno)
+# PANTALLA 2: HISTORIAL COMPACTO (Renderizado limpio sin bloques de código)
 # ==============================================================================
 elif st.session_state["pantalla"] == "historial":
 
@@ -340,24 +349,20 @@ elif st.session_state["pantalla"] == "historial":
         df_filtrado = df_filtrado.sort_values(by="Fecha_dt", ascending=False)
 
         if not df_filtrado.empty:
-            # Construir bloque HTML con scroll interno para evitar scroll de pantalla
+            # Construir HTML en una sola línea continua por elemento para evitar que Streamlit cree código negro
             items_html = ""
             for _, row in df_filtrado.iterrows():
-                items_html += f"""
-                <div class="historial-item-compact">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 700; color: #0F172A; font-size: 13px;">
-                            #{row.get('ID_Folio', '')} — {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
-                        </span>
-                        <span class="badge-estatus">{row.get('Estatus', 'NUEVO')}</span>
-                    </div>
-                    <div style="font-size: 12px; color: #475569; margin-top: 4px;">
-                        🧪 <b>{row.get('Adhesivo', '')}</b> ({row.get('Botes', '')} Bote) • <span style="color:#64748B;">{row.get('FechaCreacion', '')}</span>
-                    </div>
-                </div>
-                """
+                id_f = str(row.get('ID_Folio', ''))
+                lin = str(row.get('Linea', ''))
+                cab = str(row.get('Cabina', ''))
+                est = str(row.get('Estatus', 'NUEVO'))
+                adh = str(row.get('Adhesivo', ''))
+                bot = str(row.get('Botes', ''))
+                fec = str(row.get('FechaCreacion', ''))
+
+                items_html += f'<div class="historial-item-compact"><div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-weight: 700; color: #0F172A; font-size: 13px;">#{id_f} — {lin} (Cabina {cab})</span><span class="badge-estatus">{est}</span></div><div style="font-size: 12px; color: #475569; margin-top: 4px;">🧪 <b>{adh}</b> ({bot} Bote) • <span style="color:#64748B;">{fec}</span></div></div>'
             
-            # Renderizar en la caja con scroll
+            # Renderizar dentro de la caja con scroll
             st.markdown(f'<div class="historial-box">{items_html}</div>', unsafe_allow_html=True)
         else:
             st.info("No hay folios registrados en los últimos 4 días.")
