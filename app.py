@@ -19,22 +19,19 @@ st.set_page_config(
 def hora_mexico():
     return datetime.utcnow() - timedelta(hours=6)
 
-# 2. CAPTURA Y FIJACIÓN DE PANTALLA EN URL (Evita reseteos en auto-refresco)
+# 2. CAPTURA Y FIJACIÓN DE PANTALLA EN URL
 query_params = st.query_params
 
-# Si viene una orden de atender por URL (?atender=ID)
 atender_id = query_params.get("atender", None)
 if atender_id:
     st.session_state["folio_atender"] = atender_id
     st.session_state["pantalla"] = "admin_detalle"
     del st.query_params["atender"]
 
-# Sincronizar pantalla con URL
 p_param = query_params.get("p", None)
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = p_param if p_param else "formulario"
 elif p_param and p_param != st.session_state["pantalla"]:
-    # Si la URL tiene una pantalla definida por refresco
     st.session_state["pantalla"] = p_param
 
 if "folio_atender" not in st.session_state:
@@ -42,7 +39,7 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS (BOTÓN INSIDE + SCROLL DE ALTO CONTRASTE)
+# 3. ESTILOS CSS
 st.markdown(
     """
     <style>
@@ -53,7 +50,6 @@ st.markdown(
         display: none !important;
     }
     
-    /* FONDO PRINCIPAL PASTEL */
     .stApp {
         background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
                     radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
@@ -70,7 +66,6 @@ st.markdown(
         margin: 0 auto !important;
     }
 
-    /* PANEL IZQUIERDO DASHBOARD */
     [data-testid="stSidebar"] {
         background-color: #0F172A !important;
         border-right: 1px solid #1E293B !important;
@@ -102,7 +97,6 @@ st.markdown(
         border-color: #0284C7 !important;
     }
 
-    /* FIX BOTÓN VERDE EN FORMULARIOS */
     div[class*="st-key-FormSubmitter-"],
     div[data-testid="stElementContainer"]:has(div[data-testid="stFormSubmitButton"]) {
         width: 100% !important;
@@ -145,7 +139,6 @@ st.markdown(
         font-size: 16px !important;
     }
 
-    /* BOTONES GENERALES */
     div.stButton > button {
         width: 100% !important;
         min-height: 40px !important;
@@ -202,9 +195,7 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* ------------------------------------------------------------- */
-    /* CAJA Y BARRA DE SCROLL DE ALTO CONTRASTE (AZUL VISIBLE) */
-    /* ------------------------------------------------------------- */
+    /* SCROLLBAR AZUL ALTO CONTRASTE */
     .historial-box {
         max-height: 420px;
         overflow-y: auto;
@@ -237,7 +228,7 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    /* TARJETA DE SURTIDO CON BOTÓN INTEGRADO DENTRO */
+    /* TARJETA DE SURTIDO CON BOTÓN DENTRO Y DERECHA */
     .card-surtido-inside {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -559,7 +550,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (BOTÓN DENTRO Y FIJO EN AUTO-REFRESCO)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (HTML 100% LIMPIO SIN ERRORES)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -599,21 +590,8 @@ elif st.session_state["pantalla"] == "admin_panel":
                 prio = str(row.get('Prioridad', ''))
                 fec = str(row.get('FechaCreacion', ''))
 
-                # BOTÓN DENTRO DE LA TARJETA HTML ALINEADO A LA DERECHA
-                items_surtido_html += f'''
-                <div class="card-surtido-inside">
-                    <div style="flex-grow: 1;">
-                        <span class="badge-pendiente">{est}</span>
-                        <div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">
-                            #{f_id} — {lin} (Cabina {cab})
-                        </div>
-                        <div style="font-size: 11px; color: #475569; margin-top: 2px;">
-                            🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span>
-                        </div>
-                    </div>
-                    <a href="?p=admin_panel&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a>
-                </div>
-                '''
+                # CADENA EN UNA SOLA LÍNEA CONTINUA PARA EVITAR EL CAJÓN NEGRO DE CÓDIGO
+                items_surtido_html += f'<div class="card-surtido-inside"><div style="flex-grow: 1;"><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?p=admin_panel&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div>'
             
             st.markdown(f'<div class="historial-box">{items_surtido_html}</div>', unsafe_allow_html=True)
         else:
