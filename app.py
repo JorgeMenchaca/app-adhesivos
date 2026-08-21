@@ -16,14 +16,12 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS (FONDO PASTEL + BOTÓN FIT-CONTENT CENTRADO)
+# 3. ESTILOS CSS
 st.markdown(
     """
     <style>
-    /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO DE GRADIENTE PASTEL SUAVE (ORIGINAL) */
     .stApp {
         background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
                     radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
@@ -39,7 +37,6 @@ st.markdown(
         padding-bottom: 2rem !important;
     }
     
-    /* CENTRAR LOS TÍTULOS DE LOS DROPDOWNS */
     [data-testid="stWidgetLabel"] {
         display: flex !important;
         justify-content: center !important;
@@ -55,12 +52,10 @@ st.markdown(
         width: 100% !important;
     }
     
-    /* FORZAR COLORES OSCUROS EN TEXTOS */
     label, p, span, h1, h2, h3, .stMarkdown {
         font-family: 'Inter', system-ui, sans-serif !important;
     }
 
-    /* CONTENEDOR DEL BOTÓN CENTRADO */
     div[data-testid="stFormSubmitButton"] {
         width: 100% !important;
         display: flex !important;
@@ -68,7 +63,6 @@ st.markdown(
         align-items: center !important;
     }
     
-    /* BOTÓN VERDE FIT-CONTENT */
     div[data-testid="stFormSubmitButton"] > button {
         width: fit-content !important;
         min-width: 200px !important;
@@ -97,7 +91,6 @@ st.markdown(
         font-weight: 800 !important;
     }
     
-    /* TARJETA BLANCA CENTRADA CON BORDES REDONDEADOS */
     [data-testid="stForm"] {
         background-color: #FFFFFF !important;
         border-radius: 20px !important;
@@ -106,7 +99,6 @@ st.markdown(
         padding: 24px !important;
     }
     
-    /* TARJETAS DE INFORMACIÓN DEL QR */
     .info-card {
         background-color: #FFFFFF;
         border-radius: 12px;
@@ -129,7 +121,6 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* TARJETA DE HISTORIAL */
     .historial-item {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -161,12 +152,13 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 # ==============================================================================
 if st.session_state["pantalla"] == "formulario":
 
+    # Cargar datos con TTL de 5 segundos para evitar saturación de la API de Google
     try:
-        df_folios = conn.read(worksheet="FOLIOS", ttl=0)
-        df_adhesivos = conn.read(worksheet="ADHESIVOS", ttl=0)
-        df_prioridad = conn.read(worksheet="PRIORIDAD", ttl=0)
+        df_folios = conn.read(worksheet="FOLIOS", ttl=5)
+        df_adhesivos = conn.read(worksheet="ADHESIVOS", ttl=5)
+        df_prioridad = conn.read(worksheet="PRIORIDAD", ttl=5)
     except Exception as e:
-        st.error("⚠️ Error de conexión con Google Sheets.")
+        st.error(f"⚠️ Error de conexión con Google Sheets: {e}")
         st.stop()
 
     query_params = st.query_params
@@ -190,7 +182,6 @@ if st.session_state["pantalla"] == "formulario":
         if adhesivo_qr and adhesivo_qr in adhesivos_disponibles:
             index_adhesivo = adhesivos_disponibles.index(adhesivo_qr)
 
-    # Buscar Prioridad en la pestaña PRIORIDAD
     match_prioridad = df_prioridad[df_prioridad["LINEA"] == linea_qr]
     prioridad_val = (
         match_prioridad["PRIORIDAD"].values[0]
@@ -307,7 +298,11 @@ elif st.session_state["pantalla"] == "historial":
         unsafe_allow_html=True,
     )
 
-    df_folios = conn.read(worksheet="FOLIOS", ttl=0)
+    try:
+        df_folios = conn.read(worksheet="FOLIOS", ttl=5)
+    except Exception as e:
+        st.error(f"⚠️ Error al consultar historial: {e}")
+        st.stop()
 
     if not df_folios.empty and "FechaCreacion" in df_folios.columns:
         df_folios["Fecha_dt"] = pd.to_datetime(
