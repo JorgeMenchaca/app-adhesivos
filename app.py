@@ -16,20 +16,19 @@ st.set_page_config(
 if "pantalla" not in st.session_state:
     st.session_state["pantalla"] = "formulario"
 
-# 3. ESTILOS CSS (BOTÓN 100% ANCHO Y SUBTÍTULO VISIBLE)
+# 3. ESTILOS CSS CON SOBREESCRITURA DEL CONTENEDOR PADRE FIT-CONTENT
 st.markdown(
     """
     <style>
     /* Ocultar menús de Streamlit */
     #MainMenu, footer, header, [data-testid="stSidebar"] {display: none !important;}
     
-    /* FONDO DE GRADIENTE PASTEL SUAVE */
+    /* FONDO MODERNO DE SISTEMA DE TICKETS Y FLUJO DIGITAL */
     .stApp {
-        background: radial-gradient(at 0% 0%, rgba(224, 231, 255, 0.7) 0px, transparent 50%),
-                    radial-gradient(at 100% 0%, rgba(254, 226, 226, 0.7) 0px, transparent 50%),
-                    radial-gradient(at 100% 100%, rgba(243, 232, 255, 0.7) 0px, transparent 50%),
-                    radial-gradient(at 0% 100%, rgba(224, 242, 254, 0.7) 0px, transparent 50%),
-                    #F8FAFC !important;
+        background-image: linear-gradient(rgba(248, 250, 252, 0.88), rgba(248, 250, 252, 0.88)), 
+                          url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200') !important;
+        background-size: cover !important;
+        background-position: center !important;
         background-attachment: fixed !important;
     }
     
@@ -38,36 +37,26 @@ st.markdown(
         padding-top: 2rem !important;
         padding-bottom: 2rem !important;
     }
-    
-    /* CENTRAR LOS TÍTULOS DE LOS DROPDOWNS */
-    [data-testid="stWidgetLabel"] {
-        display: flex !important;
-        justify-content: center !important;
+
+    /* ------------------------------------------------------------- */
+    /* FIX CRÍTICO: DESTRUIR EL FIT-CONTENT DEL CONTENEDOR PADRE */
+    /* ------------------------------------------------------------- */
+    div[class*="st-key-FormSubmitter-"],
+    div[data-testid="stElementContainer"]:has(div[data-testid="stFormSubmitButton"]) {
         width: 100% !important;
-    }
-    
-    [data-testid="stWidgetLabel"] p {
-        text-align: center !important;
-        font-weight: 700 !important;
-        font-size: 14px !important;
-        color: #0F172A !important;
-        margin-bottom: 8px !important;
-        width: 100% !important;
-    }
-    
-    /* FORZAR COLORES OSCUROS EN TEXTOS GENERALES */
-    label, p, span, h1, h2, h3, .stMarkdown {
-        font-family: 'Inter', system-ui, sans-serif !important;
+        max-width: 100% !important;
     }
 
-    /* CONTENEDOR DEL BOTÓN A ANCHO COMPLETO (100%) */
-    div[data-testid="stFormSubmitButton"] {
+    div[data-testid="stFormSubmitButton"],
+    div[data-testid="stFormSubmitButton"] > div {
         width: 100% !important;
+        max-width: 100% !important;
         display: block !important;
     }
     
-    /* BOTÓN VERDE EXPANDIDO AL 100% DEL LARGO DEL DROPDOWN */
-    div[data-testid="stFormSubmitButton"] > button {
+    /* BOTÓN VERDE A 100% DE ANCHO REAL */
+    div[data-testid="stFormSubmitButton"] > button,
+    button[data-testid="stBaseButton-secondaryFormSubmit"] {
         width: 100% !important;
         min-height: 48px !important;
         background-color: #10B981 !important;
@@ -93,6 +82,27 @@ st.markdown(
         color: #FFFFFF !important;
         font-weight: 800 !important;
         font-size: 16px !important;
+    }
+    
+    /* CENTRAR LOS TÍTULOS DE LOS DROPDOWNS */
+    [data-testid="stWidgetLabel"] {
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
+    }
+    
+    [data-testid="stWidgetLabel"] p {
+        text-align: center !important;
+        font-weight: 700 !important;
+        font-size: 14px !important;
+        color: #0F172A !important;
+        margin-bottom: 8px !important;
+        width: 100% !important;
+    }
+    
+    /* FORZAR COLORES OSCUROS EN TEXTOS */
+    label, p, span, h1, h2, h3, .stMarkdown {
+        font-family: 'Inter', system-ui, sans-serif !important;
     }
     
     /* TARJETA BLANCA CENTRADA CON BORDES REDONDEADOS */
@@ -127,7 +137,7 @@ st.markdown(
         font-weight: 700;
     }
 
-    /* TARJETA DE HISTORIAL */
+    /* TARJETA DE HISTORIAL DE TICKETS */
     .historial-item {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -188,7 +198,6 @@ if st.session_state["pantalla"] == "formulario":
         if adhesivo_qr and adhesivo_qr in adhesivos_disponibles:
             index_adhesivo = adhesivos_disponibles.index(adhesivo_qr)
 
-    # Buscar Prioridad en la pestaña PRIORIDAD
     match_prioridad = df_prioridad[df_prioridad["LINEA"] == linea_qr]
     prioridad_val = (
         match_prioridad["PRIORIDAD"].values[0]
@@ -196,7 +205,7 @@ if st.session_state["pantalla"] == "formulario":
         else "MEDIA"
     )
 
-    # ENCABEZADO CON SUBTÍTULO CORREGIDO Y 100% VISIBLE
+    # ENCABEZADO Y SUBTÍTULO 100% VISIBLE
     st.markdown(
         "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Nuevo Folio</h2>",
         unsafe_allow_html=True,
@@ -297,7 +306,7 @@ if st.session_state["pantalla"] == "formulario":
 elif st.session_state["pantalla"] == "historial":
 
     st.markdown(
-        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Folios Recientes</h2>",
+        "<h2 style='text-align: center; font-weight: 800; margin-bottom: 2px; color: #0F172A;'>Tickets Recientes</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -326,7 +335,7 @@ elif st.session_state["pantalla"] == "historial":
                     <div class="historial-item">
                         <span class="badge-estatus">{row.get('Estatus', 'NUEVO')}</span>
                         <div style="font-size: 12px; color: #64748B; font-weight: 600;">
-                            Folio #{row.get('ID_Folio', '')} • {row.get('FechaCreacion', '')}
+                            Ticket #{row.get('ID_Folio', '')} • {row.get('FechaCreacion', '')}
                         </div>
                         <div style="font-size: 15px; font-weight: 700; color: #0F172A; margin-top: 4px;">
                             {row.get('Linea', '')} (Cabina {row.get('Cabina', '')})
@@ -339,7 +348,7 @@ elif st.session_state["pantalla"] == "historial":
                     unsafe_allow_html=True,
                 )
         else:
-            st.info("No hay folios registrados en los últimos 4 días.")
+            st.info("No hay tickets registrados en los últimos 4 días.")
     else:
         st.info("No hay registros en la base de datos.")
 
@@ -347,6 +356,6 @@ elif st.session_state["pantalla"] == "historial":
         "<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True
     )
 
-    if st.button("➕ CREAR OTRO FOLIO"):
+    if st.button("➕ CREAR OTRO TICKET"):
         st.session_state["pantalla"] = "formulario"
         st.rerun()
