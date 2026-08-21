@@ -22,7 +22,6 @@ def hora_mexico():
 # 2. MANEJO INTELIGENTE DE NAVEGACIÓN Y PARÁMETROS DE URL
 query_params = st.query_params
 
-# Prioridad 1: Si se presionó el botón 'Atender' en alguna tarjeta
 atender_id = query_params.get("atender", None)
 
 if atender_id:
@@ -32,7 +31,6 @@ if atender_id:
     if "atender" in st.query_params:
         del st.query_params["atender"]
 else:
-    # Prioridad 2: Leer pantalla desde el parámetro 'p' de la URL
     p_param = query_params.get("p", None)
     if p_param:
         st.session_state["pantalla"] = p_param
@@ -247,7 +245,7 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    /* TARJETA DE SURTIDO CON BOTÓN DENTRO Y DERECHA */
+    /* TARJETA DE SURTIDO CON BOTÓN INTEGRADO DENTRO */
     .card-surtido-inside {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -569,54 +567,57 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (MÓDULO REDIRECCIÓN CORREGIDO)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (CON FRAGMENTO DE REFRESCO SILENCIOSO)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
-
-    st.markdown('<meta http-equiv="refresh" content="60">', unsafe_allow_html=True)
 
     st.markdown(
         "<h2 style='text-align: center; font-weight: 800; color: #0F172A;'>📦 Panel de Surtido en Vivo</h2>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado en vivo (Refresco cada 60s) • Pendientes (30 días)</div>",
+        "<div style='text-align: center; color: #334155; font-size: 13px; margin-bottom: 16px;'>⏱️ Sincronizado silenciosamente (Refresco en vivo cada 60s) • Pendientes (30 días)</div>",
         unsafe_allow_html=True,
     )
 
-    df_folios = conn.read(worksheet="FOLIOS", ttl=5)
+    # FRAGMENTO DE STREAMLIT: REFRESCA ÚNICAMENTE ESTA CAJA EN SEGUNDO PLANO
+    @st.fragment(run_every=60)
+    def render_panel_surtido():
+        df_folios = conn.read(worksheet="FOLIOS", ttl=0)
 
-    if not df_folios.empty and "FechaCreacion" in df_folios.columns:
-        df_folios["Fecha_dt"] = pd.to_datetime(df_folios["FechaCreacion"], errors="coerce")
-        hace_30_dias = pd.Timestamp.now() - pd.Timedelta(days=30)
-        
-        df_pendientes = df_folios[
-            (df_folios["Fecha_dt"] >= hace_30_dias) & 
-            (df_folios["Estatus"].astype(str).str.upper() != "COMPLETADO")
-        ].copy()
-
-        df_pendientes = df_pendientes.sort_values(by="Fecha_dt", ascending=False)
-
-        if not df_pendientes.empty:
-            items_surtido_html = ""
-            for _, row in df_pendientes.iterrows():
-                f_id = str(row.get('ID_Folio', ''))
-                lin = str(row.get('Linea', ''))
-                cab = str(row.get('Cabina', ''))
-                est = str(row.get('Estatus', 'NUEVO'))
-                adh = str(row.get('Adhesivo', ''))
-                bot = str(row.get('Botes', ''))
-                prio = str(row.get('Prioridad', ''))
-                fec = str(row.get('FechaCreacion', ''))
-
-                # ENLACE DIRECTO A LA PANTALLA DE DETALLE (p=admin_detalle)
-                items_surtido_html += f'<div class="card-surtido-inside"><div style="flex-grow: 1;"><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?p=admin_detalle&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div>'
+        if not df_folios.empty and "FechaCreacion" in df_folios.columns:
+            df_folios["Fecha_dt"] = pd.to_datetime(df_folios["FechaCreacion"], errors="coerce")
+            hace_30_dias = pd.Timestamp.now() - pd.Timedelta(days=30)
             
-            st.markdown(f'<div class="historial-box">{items_surtido_html}</div>', unsafe_allow_html=True)
+            df_pendientes = df_folios[
+                (df_folios["Fecha_dt"] >= hace_30_dias) & 
+                (df_folios["Estatus"].astype(str).str.upper() != "COMPLETADO")
+            ].copy()
+
+            df_pendientes = df_pendientes.sort_values(by="Fecha_dt", ascending=False)
+
+            if not df_pendientes.empty:
+                items_surtido_html = ""
+                for _, row in df_pendientes.iterrows():
+                    f_id = str(row.get('ID_Folio', ''))
+                    lin = str(row.get('Linea', ''))
+                    cab = str(row.get('Cabina', ''))
+                    est = str(row.get('Estatus', 'NUEVO'))
+                    adh = str(row.get('Adhesivo', ''))
+                    bot = str(row.get('Botes', ''))
+                    prio = str(row.get('Prioridad', ''))
+                    fec = str(row.get('FechaCreacion', ''))
+
+                    items_surtido_html += f'<div class="card-surtido-inside"><div style="flex-grow: 1;"><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?p=admin_panel&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div>'
+                
+                st.markdown(f'<div class="historial-box">{items_surtido_html}</div>', unsafe_allow_html=True)
+            else:
+                st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
         else:
-            st.success("🎉 ¡Excelente! No hay folios pendientes por surtir en los últimos 30 días.")
-    else:
-        st.info("No hay registros en la base de datos.")
+            st.info("No hay registros en la base de datos.")
+
+    # Ejecutar el fragmento de actualización en vivo
+    render_panel_surtido()
 
 
 # ==============================================================================
