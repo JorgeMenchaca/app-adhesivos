@@ -7,12 +7,12 @@ from streamlit_gsheets import GSheetsConnection
 # CLAVE DE ACCESO ADMINISTRADOR
 CLAVE_ADMIN = "1234"
 
-# 1. CONFIGURACIÓN DE PÁGINA
+# 1. CONFIGURACIÓN DE PÁGINA (AUTO: Cerrado en móvil, Abierto en PC)
 st.set_page_config(
     page_title="Dashboard | Gestión de Folios",
     page_icon="📦",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 # HELPER: HORA ZONA CENTRAL MÉXICO (UTC-6)
@@ -42,24 +42,43 @@ if "folio_atender" not in st.session_state:
 if "admin_autenticado" not in st.session_state:
     st.session_state["admin_autenticado"] = False
 
-# 3. ESTILOS CSS
+# 3. ESTILOS CSS RESPONSIVOS (DIFERENCIADO PC Y CELULAR)
 st.markdown(
     """
     <style>
     #MainMenu, footer, header {display: none !important;}
     
-    [data-testid="stSidebarCollapseButton"], 
-    [data-testid="collapsedControl"] {
-        display: none !important;
-    }
-
+    /* ------------------------------------------------------------- */
+    /* COMPUTADORA (MIN-WIDTH: 768PX): FIJO A LA IZQUIERDA */
+    /* ------------------------------------------------------------- */
     @media (min-width: 768px) {
+        [data-testid="stSidebarCollapseButton"], 
+        [data-testid="collapsedControl"] {
+            display: none !important;
+        }
         [data-testid="stSidebar"] {
             display: block !important;
             visibility: visible !important;
             min-width: 260px !important;
             max-width: 260px !important;
             transform: none !important;
+        }
+    }
+
+    /* ------------------------------------------------------------- */
+    /* CELULAR (MAX-WIDTH: 767PX): MOSTRAR BOTÓN DE CERRAR 'X' */
+    /* ------------------------------------------------------------- */
+    @media (max-width: 767px) {
+        [data-testid="stSidebarCollapseButton"], 
+        [data-testid="collapsedControl"] {
+            display: flex !important;
+            visibility: visible !important;
+            z-index: 999999 !important;
+        }
+        [data-testid="stSidebarCollapseButton"] button {
+            color: #FFFFFF !important;
+            background-color: #1E293B !important;
+            border-radius: 8px !important;
         }
     }
     
@@ -236,7 +255,7 @@ st.markdown(
         background-color: #0F172A !important;
     }
 
-    /* TARJETA DE FOLIO COMPACTA CON BOTÓN INTEGRADO */
+    /* TARJETA BLANCA SÓLIDA DE FOLIO */
     .historial-item-compact {
         background-color: #FFFFFF !important;
         border: 1px solid #E2E8F0 !important;
@@ -246,6 +265,7 @@ st.markdown(
         box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
     }
 
+    /* BOTÓN ATENDER DENTRO DE LA TARJETA */
     .btn-atender-inside {
         background-color: #0284C7 !important;
         color: #FFFFFF !important;
@@ -291,7 +311,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 
 # ==============================================================================
-# PANEL IZQUIERDO DE NAVEGACIÓN (SIDEBAR DASHBOARD FIJO)
+# PANEL IZQUIERDO DE NAVEGACIÓN (SIDEBAR DASHBOARD FIJO EN PC)
 # ==============================================================================
 with st.sidebar:
     st.markdown(
@@ -556,7 +576,7 @@ elif st.session_state["pantalla"] == "admin_login":
 
 
 # ==============================================================================
-# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TARJETAS HTML 100% LIMPIAS)
+# PANTALLA 4: PANEL DE SURTIDO EN VIVO (TARJETAS SÓLIDAS EN BLANCO)
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_panel":
 
@@ -596,7 +616,7 @@ elif st.session_state["pantalla"] == "admin_panel":
                     prio = str(row.get('Prioridad', ''))
                     fec = str(row.get('FechaCreacion', ''))
 
-                    items_surtido_html += f'<div class="historial-item-compact"><div style="display: flex; justify-content: space-between; align-items: center;"><div><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div></div>'
+                    items_surtido_html += f'<div class="historial-item-compact"><div style="display: flex; justify-content: space-between; align-items: center;"><div><span class="badge-pendiente">{est}</span><div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-top: 2px;">#{f_id} — {lin} (Cabina {cab})</div><div style="font-size: 11px; color: #475569; margin-top: 2px;">🧪 <b>{adh}</b> ({bot} Bote) • Prioridad: <b style="color:#D97706;">{prio}</b> • <span style="color:#64748B;">{fec}</span></div></div><a href="?p=admin_panel&atender={f_id}" target="_self" class="btn-atender-inside">✏️ Atender</a></div></div>'
                 
                 st.markdown(f'<div class="historial-box">{items_surtido_html}</div>', unsafe_allow_html=True)
             else:
@@ -608,14 +628,13 @@ elif st.session_state["pantalla"] == "admin_panel":
 
 
 # ==============================================================================
-# PANTALLA 5: DETALLE Y RESOLUCIÓN DE FOLIO (CORREGIDO ERROR DTYPE EN PANDAS)
+# PANTALLA 5: DETALLE Y RESOLUCIÓN DE FOLIO
 # ==============================================================================
 elif st.session_state["pantalla"] == "admin_detalle":
 
     folio_id = st.session_state.get("folio_atender", None)
     df_folios = conn.read(worksheet="FOLIOS", ttl=0)
 
-    # FIX CRÍTICO: Convertir todas las columnas a tipo 'object' para evitar el error TypeError en Pandas
     df_folios = df_folios.astype(object)
 
     folio_data = df_folios[df_folios["ID_Folio"].astype(str) == str(folio_id)]
@@ -662,7 +681,6 @@ elif st.session_state["pantalla"] == "admin_detalle":
 
                     idx = df_folios[df_folios["ID_Folio"].astype(str) == str(folio_id)].index[0]
 
-                    # ASIGNACIÓN SEGURA DE VALORES
                     df_folios.at[idx, "Estatus"] = "COMPLETADO"
                     df_folios.at[idx, "FolioSurtido"] = str(folio_surtido_val)
                     df_folios.at[idx, "DescripcionResolucion"] = str(descripcion_res_val)
